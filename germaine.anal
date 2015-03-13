@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Verifier les seuils
+ 
+# Ce programme lit les valeurs d'AOD dans les fichiers de la Chine et donne les nouvelles valeurs pour les longeurs d'ondes cibles.
+# usage : germaine yyyy-mm
+echo $1 | /bin/sed 's/-/ /g' > date_anal.tmp
+
+read year month < date_anal.tmp
+rm -f date_anal.tmp
+
+if [ -d /home/sand/public_html/data_chine/AOD_$year/$month/ ]
+   then 
+
+
+  cd /home/sand/public_html/data_chine/AOD_$year/$month/
+ for i in *.TXT
+   do j=`echo $i | sed 's/\TXT/anal/g'`
+       grep "L1.*0 " $i > $j
+   done
+ echo "Annee Mois Jour Heure ANG400-500 ANG500-600 AOD435.5 AOD498 AOD546 AOD569 AOD615.5" > /home/sand/public_html/data_chine/AODfinal_"$year"_"$month".txt
+ for x in *.anal
+   do read bidon y m d t bidon bidon bidon AOD400 AOD500 AOD675 bidon < $x
+      echo $t | sed 's/\./ /g' > time.tmp
+      read h bidon < time.tmp
+      if [ $h -lt 10 ]
+        then echo $AOD400 $AOD500 $AOD675 > input.tmp
+         ../../paul.anal
+            read results < output.tmp
+           echo $y $m $d $t $results >> /home/sand/public_html/data_chine/AODfinal_"$year"_"$month".txt
+      fi
+     
+       tail --lines=1 $x > last.tmp 
+           read bidon y m d t bidon bidon bidon AOD400 AOD500 AOD675 bidon < last.tmp
+           echo $t | sed 's/\./ /g' > time.tmp
+           read h bidon < time.tmp
+      if [ $h -gt 14 ]
+        then echo $AOD400 $AOD500 $AOD675 > input.tmp
+         ../../paul.anal
+            read results < output.tmp
+           echo $y $m $d $t $results >> /home/sand/public_html/data_chine/AODfinal_"$year"_"$month".txt
+      fi
+   done
+rm -f time.tmp
+rm -f input.tmp
+rm -f output.tmp
+rm -f last.tmp
+
+echo "----DONE----"
+   else echo "This date is not valid"
+fi

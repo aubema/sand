@@ -1,0 +1,97 @@
+#!/bin/bash
+#This program launches nathalie on selected days of a month.
+#-g option is used in a special case (study of Hefei data). It extracts valid days from the file named AODfinal_yyyy_mm.txt, which is created by the program germaine.
+#Use no option to write dates manually in a file named datesvalides_YEAR_MONTH.txt
+#Valid dates in datesvalides_YEAR_MONTH.txt have to be 2 digits, 1 day per line.
+#usage : jessica  [-OPTION] yyyy-mm     (in ./data/ directory)
+
+#Time reading, for runtime
+START=$(date +%s)
+
+
+
+#OPTIONS
+gopt=0
+while getopts 'g:' OPTION
+do
+
+         case $OPTION in
+           g) gopt=1 
+              date=$OPTARG
+           ;;
+         esac
+
+done
+
+
+# Reading date
+if [ "$gopt" != "1" ]
+   then date=$1
+fi
+
+echo $date | sed 's/-/ /g' > yearmonth.tmp
+read annee mois < yearmonth.tmp
+rm -f yearmonth.tmp 
+
+
+#When -g option is used. Writing of valid dates in datesvalides_YEAR_MONTH.tmp from AODfinal_YEAR_MONTH.txt
+if [ "$gopt" = "1" ]
+  then
+    if [ ! -e AODfinal_$annee"_"$mois".txt" ]     # verification de l existence du fichier AODfinal_ANNEE_MOIS.txt
+     then echo "AODfinal_"$annee"_"$mois".txt does not exist. Execute germaine.anal on corresponding month to create it."
+          exit 1
+    fi 
+    rm -f datesvalides_$annee"_"$mois".txt"    # réinitialisation des anciennes dates valides
+   
+    if [ $mois -lt 10 ]                    # pour correspondre au format de AODfinal_ANNEE_MOIS.txt
+       then 
+          if [ ${mois:0:1} = 0 ]
+           then month=${mois:1:1}
+          fi
+    fi 
+    cat AODfinal_$annee"_"$mois".txt" | grep "$annee $month " > datesvalides_$annee"_"$mois".tmp"
+     jour="bidon"     # reinitialisation de variable
+     while read bidon bidon j bidon
+      do
+       if [ $j -lt 10 ] 
+          then 
+             if [ ${j:0:1} != 0 ]
+               then j="0"$j
+             fi
+       fi 
+
+       if [ "$jour" != "$j" ]
+         then  jour=$j
+            echo $jour >> datesvalides_$annee"_"$mois".txt"
+       fi
+      done < datesvalides_$annee"_"$mois".tmp"
+    rm -f datesvalides_$annee"_"$mois".tmp"      
+fi
+#Reading valid dates in datesvalides_YEAR_MONTH.txt
+if [ ! -e datesvalides_$annee"_"$mois".txt" ]  # message d erreur si le fichier n existe pas
+  then echo "datesvalides_$annee"_"$mois.txt does not exist. Create this file manually or launch jessica with -g option."
+  else    
+
+
+if [! -d ./nata_out ]
+then mkdir ./nata_out
+fi
+
+
+#Beginning of the loop, to launch nathalie 
+while read day 
+do 
+
+nathalie -d $annee"-"$mois"-"$day > ./nata_out/nata_$annee"-"$mois"-"$day".out"
+
+done < datesvalides_$annee"_"$mois".txt"
+
+# Runtime
+END=$(date +%s)
+RUNTIME=$((END-START))
+HEURE=$((RUNTIME/3600))
+MIN=$((RUNTIME/60-HEURE*60))
+SEC=$((RUNTIME-RUNTIME/60*60))
+
+echo "jessica is done with data from $annee $mois, after $HEURE h $MIN min $SEC sec of work"
+fi

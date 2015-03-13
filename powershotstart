@@ -1,0 +1,24 @@
+#!/bin/bash 
+# script demarrer la prise d'images par la camera powershot s30
+#
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+cd /home/sand/public_html
+/usr/bin/gphoto2 -D
+/usr/bin/gphoto2 --set-config flashmode=0 --set-config aperture=6 --set-config iso=9 --set-config beep=0 -I 180 -F 0 --set-config resolution=1 --set-config shutterspeed=4 --set-config focusmode=0 --force-overwrite --capture-image-and-download 

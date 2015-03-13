@@ -1,0 +1,876 @@
+#!/bin/bash 
+# SAND observation script. The script need the /home/sand/public_html/cgi-bin/observation_list file
+# as an input see the online documentation for setting this file
+# 
+# http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/SandcontrolEn
+#
+#
+# Usage: observe [-m value] [-a value] [-l value] [-i value] [-d value]
+# -m is the mount mode flag. If you do not have a mount or just do not want
+#    and displacement set value to off otherwise set it to on
+# -a is the "beginning at" flag. value may be sun for sunset, ast for astronomical 
+#    twilight or any time H:M 
+# -l is the loop flag. value give the number of consecutive observing night. 0 = infinity
+# -i is the instrument flag. value could be sp for spectrometer and ph for photometer
+# -d begin after given delay and stopping before the same delay
+# -t force a cooling Temperature in Kelvin otherwise the system will determine 
+#    the cooling temp with ambiant temp minus cooldif. Must be a positive integer value.
+# -o only one sequence (i.e. observe only once the observation_list) this option need to be the last
+#
+# If you want to operate in mount mode off, begin at sunset, with the spectrometer and 
+# for every night until the end of the world just type "observe"
+# 
+# 
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+# ===========================
+# activate gps option 0=off 1=on
+gpsf=0
+# default luminosity 
+# if this value remains unchanged, the webcam is down
+lumino=512
+# webcam darkness threshold
+grep darkness_threshold /home/sand/localconfig > obs.tmp
+read bidon darkness bidon < obs.tmp
+echo "Threshold darkness level=" $darkness
+grep cammodel1 /home/sand/localconfig > obs.tmp
+read bidon cam1 bidon < obs.tmp
+if [ $cam1 = "none" ]
+   then darkness=513         # is no camera is installed to monitor ambient brightness then the system will consider the ambien light as very low
+fi
+# refresh delay between 2 webcam acquisition (be shure to be equal to delai given by crontab -l
+delaym=15
+# set ghost image flush time (sec)
+# we recommand ghosttime=270
+ghosttime=270
+# an estimate of the moving time for LXD-75
+movetime=180
+# an estimate of the moving time for PT785S+Pololu
+movetime2=20
+# an estimate of image download time
+downltime=4
+# cooling temperature differential
+cooldif=25
+# ======
+# using getopts
+#
+mflag=  
+iflag=
+aflag=
+lflag=
+dflag=
+oflag=
+tflag=
+mval="off"  # set to static mode by default
+ival="sp" # set instrument to spectrometer by default
+lval=0    # set the number of observation night to infinity by default
+aval="sun" # set the automatic observation beginning time a sunset
+dval=0  # delay beginning and end to reduce the night duration (minutes)
+# -a for 'at" possible values ast = astronomical twilight sun = sunset H:M = hour and minutes
+# determining mount model
+grep mountmodel /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+read bidon mountmodel bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+while getopts 'm:i:a:l:d:t:o' OPTION
+do
+  case $OPTION in
+    m)  mflag=1
+        mval="$OPTARG"
+        if [ $mval != "off" ]  
+        then if [ $mval != "on" ]
+             then echo "Unsupported mode: valid choices are off or on"
+                  echo "                  off = without mount on = with mount"
+                  exit 1
+             fi
+        fi
+    ;;
+    i)  iflag=1
+        ival="$OPTARG"
+        if [ $ival != "sp" ]  
+        then if [ $ival != "ph" ]
+             then echo "Unsupported instrument: valid choices are sp or ph"
+                  echo "                        sp = spectrometer and ph = photometer"
+                  exit 1
+             fi
+        fi
+    ;;
+    a)  aflag=1
+        aval="$OPTARG"  # accepted values at or ss for astronomical twilight of sunset
+    ;;
+    l)  lflag=1
+        lval="$OPTARG"
+    ;;
+    d)  dflag=1
+        dval="$OPTARG"
+    ;;
+    o)  oflag=1
+    ;;
+    t)  tflag=1
+        tval="$OPTARG"
+    ;;
+    ?)  printf "Usage: %s: [-m value] [-a value] [-l value] [-i value] [-d value] [-t value] [-o ] args\n" $(basename $0) >&2
+        exit 2
+    ;;
+  esac
+done
+shift $(($OPTIND - 1))
+echo "Starting observation with:"
+echo "   mount mode =" $mval " (off = mount off, on = mount on)"
+echo "   instrument =" $ival " (sp = spectrometer, ph = 5 filters wheel photometer)"
+echo "   begin night at" $aval "+ " $dval" min (sun = sunset, ast = astronomical twilight, H:M = other time)" 
+echo "   Number of nights =" $lval " (0 = infinity)"
+# setting mount acceleration to minimal value
+if [ $mountmodel = "PT785S+Pololu" ]
+then mono /usr/local/bin/UscCmd --accel 0,1
+     mono /usr/local/bin/UscCmd --accel 1,1
+fi
+# checking if there is an instance of observe already running
+ninstance=`ps -A | grep -c observe`
+let ninstance=ninstance-1
+if [ $ninstance -gt 1 ] 
+then echo "ERROR! No more than one instance of observe can run!"
+     echo "Exiting the script."
+     exit 0
+fi
+# be sure you are not root
+qui=`whoami | grep -c root`
+if [ $qui -gt 0 ] 
+then echo "ERROR! Attempt to run observe as root!"
+     echo "Be sure to launch observe as sand."
+     echo "Exiting the script."
+     exit 1
+fi
+# ======
+chmod -R u+rwx /home/sand/public_html/cgi-bin
+nl=0
+let delay=delaym*60
+if [ $lval -eq 0 ] 
+   then echo "Entering the never ending loop!"
+        nl=-1
+fi
+while [ $nl -lt  $lval ]
+do let nl=nl+1
+   if [ $lval -eq 0 ] 
+   then  nl=-1
+#
+#  Neverending loop if lval=0
+#
+   fi
+   airt=`/usr/local/bin/night_temperature get -t`
+#
+#  observation list file name
+#
+   myFile="observation_list"
+   if [ ! -f /home/sand/public_html/cgi-bin/$myFile ]
+   then /bin/cp /home/sand/svn/sand/trunk/mount/observation_list /home/sand/public_html/cgi-bin/
+        /bin/echo "Retrieving original observation_list"
+   fi
+#
+#  set CCD temperature
+#
+   /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
+   read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp 
+   /bin/echo "Initial CCD temperature=" $ccdt
+   if [ ! $tval ]
+   then echo "Cooling: Using thermal differential mode"
+#
+#       Cooling temperature differential
+#
+        stmp=`/bin/echo "scale=0;("$airt"-"$cooldif")/1" |/usr/bin/bc -l`
+   else echo "Cooling temperature in manual mode" $tflag $tval
+        let stmp=tval-273
+   fi
+#
+#  rounding temperature to nearest 5 C
+#
+   let stmp="$stmp"/5*5
+   largeur=${#stmp}
+   /usr/local/bin/night_temperature set -t $stmp
+   /bin/echo "Waiting while cooling CCD to "$stmp" C..."
+   let count=0
+   while [ "${ccdt:0:$largeur}" != $stmp -a $count -ne 360 ]  
+   do /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
+      read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp
+      ccdp=`/usr/local/bin/night_temperature get -r`
+      /bin/echo "t="$count" s, T="$ccdt" C, Power="$ccdp"%, Target T="$stmp" C"
+      /bin/sleep 5 
+      let count="$count"+5
+   done
+   /bin/echo "CCD temperature is ok"
+    actsec=`/bin/date +%s`
+#
+#  reading longitude and latitude from observation schedule
+#
+   if [ `grep -c " " /home/sand/public_html/cgi-bin/$myFile` -ne 0 ]
+   then /bin/grep Longitude /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+        read bidon DD MM SS bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+        /bin/grep Latitude /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+        read bidon dd mm ss bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+   else 
+        echo "Please put something in /home/sand/public_html/cgi-bin/observation_list and restart observe."
+        /usr/local/bin/night_temperature set -off
+        exit 1
+   fi
+#
+#  searching for gps port
+#
+   if [ $gpsf -eq 1 ] 
+   then echo "GPS mode activated"
+        if [ `ls /dev | grep ttyUSB0`  ] 
+        then echo "GPS look present." 
+#
+#            reading 10 gps transactions
+#
+             /bin/echo "Waiting 5 sec for GPS reading..."
+             /usr/bin/gpspipe -w -n 10 > /home/sand/public_html/cgi-bin/coords.tmp
+             /usr/bin/tail -1 /home/sand/public_html/cgi-bin/coords.tmp > /home/sand/public_html/cgi-bin/bidon.tmp
+             /bin/rm -f /home/sand/public_html/cgi-bin/coords.tmp
+             read bidon bidon bidon lat lon altitude bidon1 < /home/sand/public_html/cgi-bin/bidon.tmp
+             if [ "${bidon1:0:1}" != "" ]
+             then /bin/echo "GPS is connected, reading lat lon data."
+                  lon=`/bin/echo $lon"/-1" |/bin/bc -l`
+                  DD=`/bin/echo "scale=0;"$lon"/1" |/usr/bin/bc -l`
+                  dd=`/bin/echo "scale=0;"$lat"/1" |/usr/bin/bc -l`
+                  MMM=`/bin/echo "("$lon"-"$DD")*60" |/usr/bin/bc -l`
+                  MM=${MMM:0:2}
+                  mmm=`/bin/echo "("$lat"-"$dd")*60" |/usr/bin/bc -l`
+                  mm=${mmm:0:2}
+                  SSS=`/bin/echo "(("$lon"-"$DD")-"$MM"/60)*3600" |/usr/bin/bc -l`
+                  SS=${SSS:0:2}
+                  sss=`/bin/echo "(("$lat"-"$dd")-"$mm"/60)*3600" |/usr/bin/bc -l`
+                  ss=${sss:0:2}
+                  /bin/echo "GPS give Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS "and Altitude:" $altitude
+             else /bin/echo "GPS not working: using coords. from localconfig"
+                  /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+             fi    
+        else /bin/echo "GPS not present: using coords. from localconfig"
+             /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+        fi
+   else  echo "GPS mode off"
+   fi
+   /bin/grep "Site_name" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+   read bidon NAME bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+#
+#  computing ephemerides
+#
+   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME
+   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME > /home/sand/public_html/cgi-bin/last_ephemerides
+#
+#  setting beginning time and duration of the night
+#
+   if [ $aval = "ast" ]
+   then /bin/grep "Evening astronomical twilight" /home/sand/public_html/cgi-bin/last_ephemerides > /home/sand/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon  hour min bidon < /home/sand/public_html/cgi-bin/toto.tmp
+        /bin/grep  "Morning astronomical twilight" /home/sand/public_html/cgi-bin/last_ephemerides > /home/sand/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon  fhour fmin bidon < /home/sand/public_html/cgi-bin/toto.tmp
+   elif [ $aval = "sun" ]
+   then /bin/grep "Sunset" /home/sand/public_html/cgi-bin/last_ephemerides > /home/sand/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon bidon bidon hour min bidon < /home/sand/public_html/cgi-bin/toto.tmp
+        /bin/grep  "Sunrise" /home/sand/public_html/cgi-bin/last_ephemerides > /home/sand/public_html/cgi-bin/toto.tmp
+        read bidon fhour fmin bidon < /home/sand/public_html/cgi-bin/toto.tmp
+   else
+        echo $aval | sed 's/:/ /g' > /home/sand/public_html/cgi-bin/toto.tmp
+        read hour min < /home/sand/public_html/cgi-bin/toto.tmp  
+        /bin/grep  "Sunrise" /home/sand/public_html/cgi-bin/last_ephemerides > /home/sand/public_html/cgi-bin/toto.tmp
+        read bidon fhour fmin bidon < /home/sand/public_html/cgi-bin/toto.tmp
+   fi
+   /bin/rm -f /home/sand/public_html/cgi-bin/toto.tmp
+   ty=`/bin/date +%Y`
+   tmo=`/bin/date +%m`
+   tj=`/bin/date +%d`
+   tm=$min
+   th=$hour
+   ts=0
+   /bin/echo "/bin/date --date='"$ty-$tmo-$tj $th:$tm:$ts"' +%s" > /home/sand/public_html/cgi-bin/toto.bash
+   debsec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`
+   tm=$fmin
+   th=$fhour
+   ts=0
+   /bin/echo "/bin/date --date='"$ty-$tmo-$tj $th:$tm:$ts"' +%s" > /home/sand/public_html/cgi-bin/toto.bash
+   finsec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`
+   let finsec=finsec-dval*60
+   let debsec=debsec+dval*60
+   if [ $finsec -lt $debsec ]
+   then let finsec=finsec+86400
+   fi
+   let duration=finsec-debsec
+   echo "debug: duration=" $duration "finsec=" $finsec " debsec=" $debsec
+#
+#  computing waiting time before beginning of run
+#
+   let dsec="$debsec"-"$actsec"
+
+   if [ "$dsec" -le 0 ]
+   then echo "Observation beginning is passed (dsec=" $dsec ")"
+        if [ "$dsec" -le -21600 ]  # if the desired beginning of observation time seems more that 6h before there is probably an error of date
+        then echo "Observation beginning is more than 6h into past (dsec=" $dsec ")"
+             echo "It is probably beginning tomorrow! So adding 1 day."
+             let dsec=86400+"$dsec"
+             echo "Corrected dsec value=" $dsec
+        else                       # we assume in that case that the run have been started a bit after the desired beginning of observation time
+             let duration=duration+dsec
+             echo "Debug: changing duration" $duration $dsec 
+             dsec=0
+             /bin/echo "Observing date must be in the future!"
+             /bin/echo "Starting run immediately"
+        fi
+   elif [ "$dsec" -gt 43200 ]
+   then /bin/echo "Observing too far in time (>12h)!"
+#
+#  for the case that the run is started just a couple hours after the beginning of twilight
+#
+        read lumino < /home/sand/public_html/cgi-bin/webcam-mean
+        if [ $lumino -lt $darkness ]
+        then /bin/echo "Nightime: Starting run immediately (luminosity level=" $lumino "<"$darkness")"
+             dsec=0
+        fi
+   fi
+#
+#  Analysing observation list file and creation full night observation sequence
+#
+   nligne=`/bin/grep -c " " /home/sand/public_html/cgi-bin/$myFile`
+   let nimgtot=nligne-1
+   if [ ! $oflag ]
+   then rm -f /home/sand/public_html/cgi-bin/observation_sequence
+        echo "Duration of the observing sequence:" $duration "sec" 
+        eled=90
+        elem=0
+        eles=0
+        azid=0
+        azim=0
+        azis=0
+        olisttime=0
+        nacqui=0
+        while [ $olisttime -lt $duration ]
+        do # myLine=""
+           n=0
+           while [ $n -lt  $nligne ]
+           do let n=n+1
+              let poset=eled*60+elem
+              let posat=azid*60+azim
+              head -$n /home/sand/public_html/cgi-bin/$myFile | tail -1 > /home/sand/public_html/cgi-bin/ligne.tmp
+              if [ $n -gt 1 ]
+              then read eled elem eles azid azim azis imtyp inttime < /home/sand/public_html/cgi-bin/ligne.tmp
+                   let posea=eled*60+elem+eles
+                   let posaa=azid*60+azim+azis
+                   if [ $mval = "on" ]
+                   then if [ $mountmodel = "PT785S+Pololu" ] ; then movetime=$movetime2 ; fi
+                        let olisttime=olisttime+movetime
+                   fi
+                   let itime=inttime
+                   let dtime=downltime
+                   if [ $ival = "ph" ]
+                   then let 'itime=inttime*(5+1)'
+                        let 'dtime=downltime*(5+1)'
+                   fi
+                   let olisttime=olisttime+dtime+ghosttime
+                   if [ $olisttime -lt $duration ]
+                   then echo $eled $elem $eles $azid $azim $azis $imtyp $inttime >> /home/sand/public_html/cgi-bin/observation_sequence
+                        let nacqui=nacqui+1
+                        let olisttime=olisttime+itime # this allow to complete an image when the end of the observation occur during the last acquisition
+                   fi
+              fi
+           done
+        done
+        if [ $nimgtot -gt $nacqui ]
+        then let ndestroy=nimgtot-nacqui 
+             echo "Warning: The last "$ndestroy" images of the observation_list will not be taken "
+            echo "         because the night duration is shorter than observation_list "
+        fi
+   else 
+        tail -$nimgtot /home/sand/public_html/cgi-bin/$myFile > /home/sand/public_html/cgi-bin/observation_sequence
+   fi
+   echo "Desired starting time:" $hour":"$min"+"$dval"min" 
+
+#
+#  Wait for beginning of observation sequence
+#
+   let sleeprem=dsec
+   while  [ $sleeprem -gt  0 ]
+   do let sleephr=sleeprem/60/60
+      let sleepmin=(sleeprem-sleephr*60*60)/60
+      /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m )"
+      let sleeprem=sleeprem-60
+      /bin/sleep 60
+   done
+#  read current time
+   y=`/bin/date +%Y`
+   mo=`/bin/date +%m`
+   j=`/bin/date +%d`
+   m=`/bin/date +%M`
+   h=`/bin/date +%H`
+   s=`/bin/date +%S`
+#
+#  creating current night directory
+#
+   if [ ! -d "/home/sand/public_html/data/"$y ]
+   then /bin/mkdir "/home/sand/public_html/data/"$y
+        /bin/chmod a+rx "/home/sand/public_html/data/"$y
+   fi
+   if [ ! -d "/home/sand/public_html/data/"$y"/"$mo ] 
+   then /bin/mkdir "/home/sand/public_html/data/"$y"/"$mo
+        /bin/chmod a+rx "/home/sand/public_html/data/"$y"/"$mo
+   fi
+   if [ ! -d "/home/sand/public_html/data/"$y"/"$mo"/"$j ]
+   then /bin/mkdir "/home/sand/public_html/data/"$y"/"$mo"/"$j
+        /bin/chmod a+rx "/home/sand/public_html/data/"$y"/"$mo"/"$j
+   fi
+   outdir="/home/sand/public_html/data/"$y"/"$mo"/"$j
+   /bin/echo "Output directory: " $outdir
+   logname=`/bin/date +%Y-%m-%d`".log"
+   /bin/echo "Log file name: " $logname
+   if [ ! -f /home/sand/public_html/data/$logname ] 
+   then /bin/echo "" >/home/sand/public_html/data/$logname
+   fi
+   /bin/chmod a+rx /home/sand/public_html/data/$logname
+   nligne=`/bin/grep -c " " /home/sand/public_html/cgi-bin/observation_sequence`
+   /bin/echo "Number of line in observation sequence: " $nligne
+   begin=`/bin/date +%T" "%Y-%m-%d`
+   /bin/echo "=======================================================" >> /home/sand/public_html/data/$logname
+   /bin/echo " Beginning observing run @ " $begin  >> /home/sand/public_html/data/$logname
+   /bin/echo "=======================================================" >> /home/sand/public_html/data/$logname
+   /bin/echo " Basic paramaters values:" >> /home/sand/public_html/data/$logname
+   /bin/echo " Delay to flush CCD ghost image:" $ghosttime "s" >> /home/sand/public_html/data/$logname
+   /bin/echo " Output directory:" $outdir >> /home/sand/public_html/data/$logname
+   /bin/echo " Ephemerides:" >> /home/sand/public_html/data/$logname
+   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME >> /home/sand/public_html/data/$logname
+#  line data variable
+#   myLine=""
+#
+#  Loop over each observation line
+#
+   let n=0
+   let nimgtot=nligne
+   while [ $n -lt  $nligne ]
+   do let n=n+1
+
+      echo "Debug: reading line n=" $n "from a total of " $nligne "lines"
+
+      head -$n /home/sand/public_html/cgi-bin/observation_sequence | tail -1 > /home/sand/public_html/cgi-bin/ligne.tmp
+      read eled elem eles azid azim azis imtyp inttime < /home/sand/public_html/cgi-bin/ligne.tmp
+      let nimg=n
+      echo "Azimuth"$azid ":" $azim ":" $azis "Elevation" $eled ":" $elem ":" $eles
+
+      
+      if [ $mval = "on" ]
+      then /bin/echo "Moving mount to Azimuth:" $azid":"$azim":"$azis "and Elevation:" $eled":"$elem":"$eles "following" $imtyp
+           echo "Mount model = " $mountmodel  
+           if [ $mountmodel = "LXD-75" ] 
+           then echo "Mount model=" $mountmodel 
+#          look tracking.bash
+           /home/sand/public_html/cgi-bin/ligne.tmp >  /home/sand/public_html/cgi-bin/tracking.tmp
+           /usr/local/bin/tracking.bash 
+           
+#
+#               not usefull anymore since the remote does the movement by itself 
+#               we keep it only because we might need it someday 
+#
+#               move elevation to zenith to be sure that no limit swicth will be activated
+#
+#                /usr/local/bin/movetoel 90 00 0
+#
+#               move azimuth
+#
+#                if [ $azid -eq 0 ] ; then if [ $azim -eq 0 ] ; then let azim=3 ; fi ; fi
+#                if [ $azid -eq 360 ] ; then if [ $azim -eq 0 ] ; then let azid=359 ; let azim=57 ; fi ; fi
+#                if [ $azid -eq 359 ] ; then if [ $azim -eq 59 ] ; then let azim=57 ; fi ; fi
+#               first goto mount mid position = south (az=180)
+#                /usr/local/bin/movetoaz 180 00 0
+#               then goto right position
+#                /usr/local/bin/movetoaz $azid $azim 0
+#
+#               move elevation
+#
+#                /usr/local/bin/movetoel $eled $elem 0
+#
+#               return to zenith
+#
+#                /usr/local/bin/movetoel 90 00 0
+#
+#               goto azimuth 90
+#
+#               /usr/local/bin/movetoaz 90 00 0    
+#
+#              do initmount (to reduce the chance of long term bugs with the mount
+#    
+#               /usr/local/bin/initmount
+          elif [ $mountmodel = "PT785S+Pololu" ]
+#
+#              read channels, gain and offset for angle to servo position conversion
+#              servo_pos = elev_gain * angle(deg) + elev_offset
+#           
+          then echo "Mount model inside=" $mountmodel
+               grep "elev_gain" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon elev_gain bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+               grep "elev_offset" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon elev_offset bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+               grep "azim_gain" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon azim_gain bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+               grep "azim_offset" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon azim_offset bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+               grep "elev_channel" /home/sand/localconfig  > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon elev_channel bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+               grep "azim_channel" /home/sand/localconfig  > /home/sand/public_html/cgi-bin/ligne.tmp 
+               read bidon azim_channel bidon < /home/sand/public_html/cgi-bin/ligne.tmp  
+              echo $elev_gain $elev_offset $azim_gain $azim_offset $elev_channel $azim_channel
+#
+#              goto park position
+#
+               sel=`/bin/echo "scale=0;180.*"$elev_gain"+"$elev_offset |/usr/bin/bc -l`
+               saz=`/bin/echo "scale=0;0.*"$azim_gain"+"$azim_offset |/usr/bin/bc -l`
+               servoel=`echo $sel | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+               servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+               echo "init" $eled $sel $servoel $azid $saz $servoaz
+               mono /usr/local/bin/UscCmd --servo $elev_channel","$servoel 
+               mono /usr/local/bin/UscCmd --servo $azim_channel","$servoaz
+               /bin/sleep $movetime2
+#
+#              goto observing position
+#
+               sel=`/bin/echo "scale=0;"$eled"*"$elev_gain"+"$elev_offset |/usr/bin/bc -l`
+               saz=`/bin/echo "scale=0;"$azid"*"$azim_gain"+"$azim_offset |/usr/bin/bc -l`
+               servoel=`echo $sel | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+               servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+               echo "posi" $eled $sel $servoel $azid $saz $servoaz 
+               mono /usr/local/bin/UscCmd --servo $elev_channel,$servoel 
+               mono /usr/local/bin/UscCmd --servo $azim_channel,$servoaz
+               /bin/sleep $movetime2
+          fi
+      fi
+#
+#     flush ghost image
+#
+      j=`/bin/date +%d`
+      if [  "${j:0:2}" = "00"  ]
+      then j=${j:2:1}
+      else if  [  "${j:0:1}" = "0" ]
+           then j=${j:1:2}
+           fi
+      fi
+      m=`/bin/date +%M`
+      if  [  "${m:0:1}" = "0" ]
+      then m=${m:1:2}
+      fi
+      h=`/bin/date +%H`
+      if [  "${h:0:1}" = "0" ]
+      then h=${h:1:2}
+      fi
+      let min="$m"+"$h"*60+"$j"*24*60
+      read min0 < /home/sand/public_html/cgi-bin/last_image.tmp
+      let dmin=min-min0
+      if [ "$dmin" -lt 250 ]
+      then /bin/echo "Erasing ghost image (about "$ghosttime "s)"
+           /bin/echo " Erasing ghost image" >> /home/sand/public_html/data/$logname
+           /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+           /usr/local/bin/night_exposure -t $ghosttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/bidon.fits
+           /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+      fi
+#
+#     define image name
+#
+      noname=`/bin/date +%Y-%m-%d_%H:%M:%S`
+      posname="_el"$eled":"$elem":"$eles"_az"$azid":"$azim":"$azis
+      name=$imtyp"_T_"$stmp"_t_"$inttime"_"$noname$posname".fits"
+      if [ -f /home/sand/public_html/cgi-bin/$name ]
+      then /bin/rm -f /home/sand/public_html/cgi-bin/$name
+      fi
+#     entry to log file
+      begin=`/bin/date +%T" "%Y-%m-%d`
+      /bin/echo "Beginning of acquisition (image " $nimg"/"$nimgtot") @ " $begin
+
+echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $elem "min" $eles "sec" 
+
+
+
+
+
+      /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
+      /bin/echo "  Beginning of acquisition (image " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
+      /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
+      if [ -f /home/sand/public_html/cgi-bin/webcam-mean ]
+      then read lumino < /home/sand/public_html/cgi-bin/webcam-mean
+      else echo "No webcam available or damaged webcam, ignoring luminosity check"
+           let lumino=0
+      fi
+      /bin/echo "Ambient luminosity= " $lumino
+      while [ $lumino -gt $darkness ]
+      do /bin/echo "Waiting " $delaym " min for darkness... (luminosity level=" $lumino ">"$darkness")"
+         read lumino < /home/sand/public_html/cgi-bin/webcam-mean
+         let sleeprem=delay
+         while  [ $sleeprem -gt  0 ]
+         do let sleephr=sleeprem/60/60
+            let sleepmin=(sleeprem-sleephr*60*60)/60
+            /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m )"
+            let sleeprem=sleeprem-60
+            /bin/sleep 60
+         done
+      done
+#     take image
+      if [ $imtyp = "dark" ]
+      then shutter="off"
+          /bin/echo "Dark frame acquisition"
+          /bin/echo "    Dark frame acquisition" >> /home/sand/public_html/data/$logname
+      else shutter="on"
+          /bin/echo "Sky image acquisition"
+          /bin/echo "    Sky image acquisition" >> /home/sand/public_html/data/$logname
+      fi
+      /bin/echo "    Azimuth: " $azid " deg " $azim " min" $azis " sec" >> /home/sand/public_html/data/$logname
+      /bin/echo "    Elevation: " $eled " deg " $elem " min" $eles " sec" >> /home/sand/public_html/data/$logname
+      /bin/echo "    Integration time: " $inttime "sec">> /home/sand/public_html/data/$logname
+#     get ccd temperature
+      ccdt=`/usr/local/bin/night_temperature get -t`
+      airt=`/usr/local/bin/night_temperature get -ta`
+      ccdp=`/usr/local/bin/night_temperature get -r`
+      /bin/echo "    Air temperature: " $airt "C">> /home/sand/public_html/data/$logname
+      /bin/echo "    CCD temperature: " $ccdt "C">> /home/sand/public_html/data/$logname
+      /bin/echo "    Temperature setpoint: " $stmp "C">> /home/sand/public_html/data/$logname
+      /bin/echo "    CCD cooling power: " $ccdp >> /home/sand/public_html/data/$logname
+      /bin/echo "    Ambient relative luminosity: " $lumino >> /home/sand/public_html/data/$logname
+#
+#     Spectrometer case
+#
+      if [ $ival = "sp" ]
+#     sand spectrometer
+      then /usr/local/bin/night_exposure -t $inttime -pn -s $shutter -b 1 -o /home/sand/public_html/cgi-bin/$name
+      fi
+#
+#     photometer case
+#
+      if [ $ival = "ph" ]
+#     5 filter wheel photometer
+      then 
+         if [ $shutter = "on" ]
+         then echo "shutter=" $shutter
+              /bin/echo "    Time of observation: " $begin > /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    Azimuth: " $azid " deg " $azim " min" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    Elevation: " $eled " deg " $elem " min" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    Integration time: " $inttime "sec">> /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    CCD temperature: " $ccdt "C">> /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    Ambient relative luminosity:" $lumino >> /home/sand/public_html/cgi-bin/$noname.phot
+              /bin/echo "    Taking dark frame"
+              /usr/local/bin/night_exposure -t $inttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/dark.fits
+#
+#             Clear filter
+#
+              /bin/echo "    Taking Clear image"
+              /usr/local/bin/night_filter -f clear
+              /usr/local/bin/night_exposure -t $inttime -pn -s on -b 1 -o /home/sand/public_html/cgi-bin/sky.fits
+              nameph=`echo $name | sed 's/sky/Clear-dark/g'`
+              /usr/local/bin/imarith /home/sand/public_html/cgi-bin/sky.fits /home/sand/public_html/cgi-bin/dark.fits sub /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/sky.fits
+              /bin/echo "    Filter: Clear" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /usr/local/bin/imstat /home/sand/public_html/cgi-bin/$nameph >> /home/sand/public_html/cgi-bin/$noname.phot
+#              rm -f /home/sand/public_html/cgi-bin/$nameph
+#
+#             DeepSky filter
+#
+              /bin/echo "    Taking Deepsky image"
+              /usr/local/bin/night_filter -f B 
+              /usr/local/bin/night_exposure -t $inttime -pn -s on -b 1 -o /home/sand/public_html/cgi-bin/sky.fits
+              nameph=`echo $name | sed 's/sky/DeepSky-dark/g'`
+              /usr/local/bin/imarith /home/sand/public_html/cgi-bin/sky.fits /home/sand/public_html/cgi-bin/dark.fits sub /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/sky.fits
+              /bin/echo "    Filter: DeepSky" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /usr/local/bin/imstat /home/sand/public_html/cgi-bin/$nameph >> /home/sand/public_html/cgi-bin/$noname.phot
+#              rm -f /home/sand/public_html/cgi-bin/$nameph
+#
+#             Comet filter
+#
+              /bin/echo "    Taking Comet image"
+              /usr/local/bin/night_filter -f V
+              /usr/local/bin/night_exposure -t $inttime -pn -s on -b 1 -o /home/sand/public_html/cgi-bin/sky.fits
+              nameph=`echo $name | sed 's/sky/Comet-dark/g'`
+              /usr/local/bin/imarith /home/sand/public_html/cgi-bin/sky.fits /home/sand/public_html/cgi-bin/dark.fits sub /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/sky.fits
+              /bin/echo "    Filter: Comet" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /usr/local/bin/imstat /home/sand/public_html/cgi-bin/$nameph >> /home/sand/public_html/cgi-bin/$noname.phot
+#              rm -f /home/sand/public_html/cgi-bin/$nameph
+#
+#             H alpha filter
+#
+              /bin/echo "    Taking H alpha image"
+              /usr/local/bin/night_filter -f R
+              /usr/local/bin/night_exposure -t $inttime -pn -s on -b 1 -o /home/sand/public_html/cgi-bin/sky.fits
+              nameph=`echo $name | sed 's/sky/Halpha-dark/g'`
+              /usr/local/bin/imarith /home/sand/public_html/cgi-bin/sky.fits /home/sand/public_html/cgi-bin/dark.fits sub /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/sky.fits
+              /bin/echo "    Filter: Halpha" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /usr/local/bin/imstat /home/sand/public_html/cgi-bin/$nameph >> /home/sand/public_html/cgi-bin/$noname.phot
+#              rm -f /home/sand/public_html/cgi-bin/$nameph
+#
+#             IR filter
+#
+              /bin/echo "    Taking IR image"
+              /usr/local/bin/night_filter -f I
+              /usr/local/bin/night_exposure -t $inttime -pn -s on -b 1 -o /home/sand/public_html/cgi-bin/sky.fits
+              nameph=`echo $name | sed 's/sky/IR-dark/g'`
+              /usr/local/bin/imarith /home/sand/public_html/cgi-bin/sky.fits /home/sand/public_html/cgi-bin/dark.fits sub /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/sky.fits
+              /bin/echo "    Filter: IR" >> /home/sand/public_html/cgi-bin/$noname.phot
+              /usr/local/bin/imstat /home/sand/public_html/cgi-bin/$nameph >> /home/sand/public_html/cgi-bin/$noname.phot
+#              rm -f /home/sand/public_html/cgi-bin/$nameph
+              /bin/rm -f /home/sand/public_html/cgi-bin/dark.fits
+         fi
+      fi
+#
+#     entry to log file
+#
+      end=`/bin/date +%T" "%Y-%m-%d`
+      j=`/bin/date +%d`
+      if [  "${j:0:2}" = "00"  ]
+      then j=${j:2:1}
+      else if  [  "${j:0:1}" = "0" ]
+           then j=${j:1:2}
+           fi
+      fi
+      m=`/bin/date +%M`
+      if  [  "${m:0:1}" = "0" ]
+      then m=${m:1:2}
+      fi
+      h=`/bin/date +%H`
+      if  [  "${h:0:1}" = "0" ]
+      then h=${h:1:2}
+      fi
+      let min="$m"+"$h"*60+"$j"*24*60
+      /bin/echo "End of acquisition @ " $end
+      /bin/echo "Saving file: " $name
+      /bin/echo "    File name: " $name >> /home/sand/public_html/data/$logname
+      /bin/echo " -----------------------------------------------" >> /home/sand/public_html/data/$logname
+      /bin/echo "  End of acquisition @ " $end >> /home/sand/public_html/data/$logname
+      /bin/echo " -----------------------------------------------" >> /home/sand/public_html/data/$logname
+      /bin/echo $min > /home/sand/public_html/cgi-bin/last_image.tmp
+# this section was intented to determine if the last image can be take before the end of the night
+# this is not working so we decided to comment it
+#     read current time
+#
+#      starty=`/bin/date +%Y`
+#      startmo=`/bin/date +%m`
+#      startj=`/bin/date +%d`
+#      startm=`/bin/date +%M`
+#      starth=`/bin/date +%H`
+#      starts=`/bin/date +%S`
+#      /bin/echo "/bin/date --date='"$starty-$startmo-$startj $starth:$startm:$starts"' +%s" > /home/sand/public_html/cgi-bin/toto.bash
+#      startsec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`
+#      let startn=n+1
+#      head -$startn /home/sand/public_html/cgi-bin/observation_sequence | tail -1 > /home/sand/public_html/cgi-bin/startline.tmp
+#      read bidon bidon bidon bidon bidon startdt bidon < /home/sand/public_html/cgi-bin/startline.tmp
+#      rm -f /home/sand/public_html/cgi-bin/startline.tmp
+#      let startsec=startsec+stardt
+#      if [ $startsec -gt $finsec ]
+#      then let n=nligne
+#      fi
+
+
+
+#   done < /home/sand/public_html/cgi-bin/observation_sequence
+   done
+
+
+
+
+   /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
+   /bin/echo " End of observing run  "  >> /home/sand/public_html/data/$logname
+   /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
+#
+#  set cooling off
+#
+   /bin/echo "Shutting down ccd cooling"
+   /usr/local/bin/night_temperature set -off
+   echo "Waiting 10 min for CCD getting in thermal equilibrium"
+   sleep 60
+   echo "9 min left"
+   sleep 60
+   echo "8 min left"
+   sleep 60
+   echo "7 min left"
+   sleep 60
+   echo "6 min left"
+   sleep 60
+   echo "5 min left"
+   sleep 60
+   echo "4 min left"
+   sleep 60
+   echo "3 min left"
+   sleep 60
+   echo "2 min left"
+   sleep 60
+   echo "Only one min!"
+   sleep 60
+   /bin/echo "======================================================" 
+   /bin/echo " End of observing run "  
+   /bin/echo "======================================================" 
+   /bin/chmod a+rx /home/sand/public_html/cgi-bin/*.fits 
+   /bin/chmod u+w /home/sand/public_html/cgi-bin/*.fits
+   list=`/bin/ls -1 /home/sand/public_html/cgi-bin/*.fits`
+   /bin/echo "liste des images prises" $list
+   if [ -f $outdir"/"$logname ]
+   then /bin/cat /home/sand/public_html/data/$logname >> $outdir"/"$logname
+   else /bin/cat /home/sand/public_html/data/$logname > $outdir"/"$logname
+   fi
+   /bin/chmod a+rx $outdir"/"$logname
+   /bin/mv -f /home/sand/public_html/cgi-bin/*.fits $outdir
+   /bin/mv -f /home/sand/public_html/cgi-bin/*.phot $outdir
+   /bin/rm -f /home/sand/public_html/cgi-bin/skycalc.*
+   /bin/rm -f /home/sand/public_html/cgi-bin/toto.bash
+   /bin/rm -f /home/sand/public_html/cgi-bin/ligne.tmp
+   /bin/rm -f /home/sand/public_html/data/$logname
+   /bin/rm -f /home/sand/public_html/cgi-bin/lastwebcam.jpg
+   /bin/rm -f /home/sand/public_html/cgi-bin/bidon.tmp
+#
+#  park mount
+#
+   if [ $mval = "on" ] 
+   then if [ $mountmodel = "LXD-75" ]
+        then /bin/echo "Parking LXD-75 mount"
+             /usr/local/bin/movetoel 90 0 0
+             /usr/local/bin/movetoaz 90 0 0
+             /bin/echo "Mount parked."
+        elif [ $mountmodel = "PT785S+Pololu" ]
+        then /bin/echo "Parking PT785S+Pololu mount"
+             sel=`/bin/echo "scale=0;180.*"$elev_gain"+"$elev_offset |/usr/bin/bc -l`
+             saz=`/bin/echo "scale=0;0.*"$azim_gain"+"$azim_offset |/usr/bin/bc -l`
+servoel=`echo $sel | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+             mono /usr/local/bin/UscCmd --servo $elev_channel,$servoel 
+             mono /usr/local/bin/UscCmd --servo $azim_channel,$servoaz 
+             /bin/sleep $movetime2
+             /bin/echo "Mount parked."
+        fi
+   fi
+#
+# analysing data in background
+#
+   if [ $ival = "sp" ] 
+   then if [ "$lval" != "1" ]
+        then /usr/local/bin/nathalie > $outdir/analysis.log &
+        fi
+   fi
+#
+#
+   if [ $lval -ne 1 ]
+   then /bin/echo "Sleeping 6h before scheduling next run."
+        let sleeprem=21600
+        while [ $sleeprem -gt  0 ]
+        do let sleephr=sleeprem/60/60
+           let sleepmin=(sleeprem-sleephr*60*60)/60
+           /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m )"
+           let sleeprem=sleeprem-60
+           /bin/sleep 60
+        done
+   fi
+done
+     

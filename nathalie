@@ -1,0 +1,133 @@
+#!/bin/bash
+#    Copyright (C) 2011 
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+#SET DEFAULT VALUES (FIRST 4 VALUES)
+#         define photometric calibration
+#photodir: photometric calibration file path
+#photo: photometric calibration file name
+photodir="/home/sand/svn/trunk/Calib_files" 
+grep photometric_calib /home/sand/localconfig > cal.tmp
+read bidon photo bidon < cal.tmp
+#         define spectral calibration 
+#spectraldir: spectral calibration file path
+#spectral: spectral calibration file name
+spectraldir="/home/sand/svn/trunk/Calib_files" 
+grep spectral_calib /home/sand/localconfig > cal.tmp
+read bidon spectral bidon < cal.tmp
+
+
+#
+#  For Usage and options, see --help
+#
+dval="nil"
+sflag=
+while getopts 'd:sh-:' OPTION
+do
+   if [ $OPTION = '-' ]
+      then 
+         case $OPTARG in
+           help) OPTION=h
+           ;;
+           date) OPTION=d
+           ;;
+         esac
+   fi
+  case $OPTION in
+    d)  dval="$OPTARG"
+        if [ $dval = "nil" ]       
+        then echo "L option d requiert une date yyyy-mm-dd"
+             exit 1
+        fi
+    ;;
+    s)  sflag=1
+    ;;
+    h)  hflag=1                                                                                   
+    ;;        
+    ?) echo "This is not a valuable option. See user's manual below."                            
+       hflag=1
+    ;;
+  esac
+done
+shift $(($OPTIND - 1))
+if [ "$hflag" = "1" ]
+   then echo "
+Usage :
+-h               --help                  Display the user's manual
+-s                                       Keep all files that were created by an earlier inspectre.b
+ash run
+                                         (when -s is not activated, this program will clean the dir
+ectory before running inspectre.bash)
+-d [yyyy-mm-dd]  --date [ yyyy-mm-dd]]   Inspectre.bash will run in the corresponding directory
+                                         (otherwise, it will run on yesterday's directory)
+
+Each spectrophotometer has its own calibration files. Therefore, before using this program to analy
+se .fits files, 
+you MUST make sure the default calibration files are the right ones. To change the calibration file
+s, 
+edit this program and change the first 4 values in the heading (photodir, photo, spectraldir, spect
+ral). "
+  else
+     echo $dval | /bin/sed 's/-/ /g' > date.tmp
+     read year month day < date.tmp
+        if [ $dval = "nil" ]
+          then doy=`/bin/date +%j`
+            if [ ${doy:0:1} = "0" ] ; then doy=${doy:1:2}; fi 
+# this line makes sure the date is in
+# the right format
+            /bin/date -d "`/bin/date +%Y`-01-01 +$(( ${doy} - 2 ))days" +%d > date.tmp
+            read day < date.tmp
+            /bin/date -d "`/bin/date +%Y`-01-01 +$(( ${doy} - 2 ))days" +%m > date.tmp
+            read month < date.tmp
+            /bin/date -d "`/bin/date +%Y`-01-01 +$(( ${doy} - 2 ))days" +%Y > date.tmp
+            read year < date.tmp
+            /bin/rm -f date.tmp
+            echo "Analysing data from $day/$month/$year directory"
+        fi
+     if [ -d /home/sand/public_html/data/$year/$month/$day ]
+        then cd /home/sand/public_html/data/$year/$month/$day
+  
+          if [ ! $sflag ]
+             then /bin/rm -f *.txt
+                  /bin/rm -f *.tmp
+                  /bin/rm -f *.serie
+                  /bin/rm -f *.out
+                  /bin/rm -f *.in
+                  /bin/rm -f *-dark*
+#                  for x in *.log
+#                    do
+#                     if [ "$x" != "analysis.log" ] 
+#                       then if [ "$x" != $year"-"$month"-"$day".log" ]
+#                            then /bin/rm -f $x
+#                            fi
+#                     fi
+#                    done
+
+          fi
+
+     /bin/cp $photodir/$photo /home/sand/public_html/data/$year/$month/$day/
+     /bin/cp $spectraldir/$spectral /home/sand/public_html/data/$year/$month/$day/
+
+     /usr/local/bin/inspectre.bash -s $spectral -p $photo
+        
+        else       
+          echo "ERROR /home/sand/public_html/data/"$year"/"$month"/"$day "does not exist"
+
+     fi 
+fi
+
+

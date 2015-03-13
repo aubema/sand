@@ -1,0 +1,8 @@
+*SAND-3-2010-04-18.txt are the files used for the Calibration of the IAC-2010 experiment
+   That instrument is installed in Hefei China for 3 years starting on sept 17 2010 but we 
+   did not verified if the spectral calibration is already good. Should be.
+*SAND-2_OMM.txt are files for the Observatoire du Mont-Megantic unit. 
+*flat_response.txt is a photometric calibration set to 1 at each wavelength
+*spectral-calib-OBSAND-3B-28-10-2010.txt is the spectral calibration file for the portable unit in the 
+    the gray box. This unit was installed on top of Universite de Sherbrooke Sirene observatory. Then it was used in may -june 2011 in Linan and is now installed at Hefei CN.
+*sand-4A will be installed in Madrid (Universidad Complutense Madrid)

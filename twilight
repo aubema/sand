@@ -1,0 +1,31 @@
+#!/bin/bash
+# script a mettre dans le crontab -e pour definir a chaque jour
+# l heure du debut du crepuscule astronomique
+# entree du crontab -e
+# 59 23 * * * /usr/local/bin/twilight
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+grep "Site_name" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+read bidon site bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+grep "Longitude" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+read bidon DD MM SS bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+grep "Latitude" /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
+read bidon dd mm ss bidon < /home/sand/public_html/cgi-bin/ligne.tmp
+echo $DD $MM $SS $dd $mm $ss $site > toto.tmp
+/usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $site > /home/sand/public_html/cgi-bin/last_ephemerides

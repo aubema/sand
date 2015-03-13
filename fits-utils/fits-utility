@@ -1,0 +1,12 @@
+#!/bin/bash
+rm -fr bin
+mkdir bin
+list=`ls -1 *.c`
+for i in $list
+do o=`echo $i | sed 's/\.c//g'`
+   echo "cc "$i" -lcfitsio -lm -o "$o
+   cc $i -lcfitsio -lm -o $o
+   mv $o bin
+done
+mv bin/* /usr/local/bin/
+rm -fr bin

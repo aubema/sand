@@ -1,0 +1,3 @@
+Executer le scritp fitsutility
+en faisant dans le repertoire actuel ./fitsutility en tant que root
+Le programme imarith a ete modifie pour mettre a zero les pixels negatifs lors d'une soustraction

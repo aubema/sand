@@ -1,0 +1,105 @@
+#!/bin/bash 
+# SAND focus script
+# 
+# http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/SandcontrolEn
+#
+#
+# 
+#    Copyright (C) 2014  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+# ===========================
+# usage: focus Temperature IntTime NumberImages Delay(s) ghosttime(s)
+
+let ghosttime=$5
+eled=90
+elem=00
+eles=00
+azid=000
+azim=00
+azis=00
+#
+#  set CCD temperature
+#
+/usr/local/bin/night_temperature set -t $1
+/bin/echo "Waiting while cooling CCD to "$1" C..."
+let count=0
+while [ $count -ne 60 ]  
+do /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
+   read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp
+   ccdp=`/usr/local/bin/night_temperature get -r`
+   /bin/echo "t="$count" s, T="$ccdt" C, Power="$ccdp"%, Target T="$1" C"
+   /bin/sleep 5 
+   let count="$count"+5
+done
+#
+let n=0
+while [ $n -lt  $3 ]
+do let n=n+1
+   echo "Debug: exposing n=" $n "from a total of " $3 " images"
+#
+#  flush ghost image
+#
+   /bin/echo "Erasing ghost image (about "$ghosttime "s)"
+   /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+   /usr/local/bin/night_exposure -t $ghosttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/bidon.fits
+   /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+#
+#  define image name
+#
+   noname=`/bin/date +%Y-%m-%d_%H:%M:%S`
+   posname="_el"$eled":"$elem":"$eles"_az"$azid":"$azim":"$azis
+   name="sky_T_"$1"_t_"$2"_"$noname$posname".fits"
+   if [ -f /home/sand/public_html/cgi-bin/$name ]
+   then /bin/rm -f /home/sand/public_html/cgi-bin/$name
+   fi
+#  entry to log file
+   begin=`/bin/date +%T" "%Y-%m-%d`
+   /bin/echo "Beginning of acquisition (image " $n"/"$3") @ " $begin 
+# take image
+   /usr/local/bin/night_exposure -t $2 -pn -s on -b 1 -o $name
+   killall display
+   display $name &
+done
+#     take dark
+name="dark_T_"$1"_t_"$2"_"$noname$posname".fits"
+/usr/local/bin/night_exposure -t $2 -pn -s off -b 1 -o $name
+#
+#  set cooling off
+#
+   /bin/echo "Shutting down ccd cooling"
+   /usr/local/bin/night_temperature set -off
+   echo "Waiting 10 min for CCD getting in thermal equilibrium"
+   sleep 60
+   echo "9 min left"
+   sleep 60
+   echo "8 min left"
+   sleep 60
+   echo "7 min left"
+   sleep 60
+   echo "6 min left"
+   sleep 60
+   echo "5 min left"
+   sleep 60
+   echo "4 min left"
+   sleep 60
+   echo "3 min left"
+   sleep 60
+   echo "2 min left"
+   sleep 60
+   echo "Only one min!"
+   sleep 60

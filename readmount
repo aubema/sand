@@ -1,0 +1,92 @@
+#!/bin/bash
+# lire l'azimuth et l'élévation
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+data=""
+verbose=1
+sleep 1
+if [ "$1" = "AZ" ]
+   then message="#:GZ#"
+elif [ "$1" = "EL" ]
+   then message="#:GA#"
+else 
+   echo "Usage: readmount VAR Verbose; VAR = {AZ (azimuth), EL (elevation)}, Verbose= {silent=0}"
+   exit 0
+fi
+if [ "$2" != "" ]
+then verbose="$2"
+fi
+stty 9600 -icanon  time 3 min 0 < /dev/ttyS0
+while [ "$data" = "" ]
+do echo $message > /dev/ttyS0
+   data=`cat < /dev/ttyS0`
+if [ "${#data}" -eq 10 ]
+then
+   datac=`echo $data | sed 's/\:/ /g' | sed 's/#/ /g' | sed 's/\xDF/ /g' | sed 's/+/ /g'`
+   echo $datac > mount.tmp
+   read d m s < mount.tmp
+   if [ $verbose = "1" ] 
+   then  echo $d $m $s
+   fi
+
+   dd=$d
+   mm=$m
+   ss=$s
+   if [ "$1" = "AZ" ]
+   then 
+      if [  "${d:0:2}" = "00"  ]
+      then
+         dd=${d:2:1}
+      else 
+         if  [  "${d:0:1}" = "0" ]
+         then
+          dd=${d:1:2}
+         fi
+      fi
+   fi
+   if [  "$1" = "EL"  ]
+   then
+       if [  "${d:0:1}" = "0" ]
+       then 
+           dd=${d:1:1}
+       fi
+   fi
+   if [ "${m:0:1}" = "0"  ]
+   then
+      mm=${m:1:1}
+   fi
+   if [ "${s:0:1}" = "0" ]
+   then 
+      ss=${s:1:1}
+   fi
+else
+   echo "Bad reading, retrying..." $data
+   data=""  
+fi
+if [ "${data:0:1}" != "+" ] && [ "${data:0:1}" != "-" ] &&  [ "$1" = "EL" ]
+then echo "Bad reading, retrying..." ${data:0:1} $data
+     data=""
+     let 'badcount=badcount+1'
+     if [ $badcount = 10 ] 
+     then exit 1
+     fi
+fi
+done
+echo $dd $mm $ss > mount.tmp
+#sleep 1

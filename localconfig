@@ -1,0 +1,25 @@
+# localconfig file for sand 
+# please be shure to put a line for the observation command without any comments.  
+nohup observe -a sun -d 60 &
+powerusbport 3                                              # powerusb outlet to which CCD is connected
+powerusbversion 32                                          # can be 32 of 64 depending on CPU arch
+cammodel1 dlink                                             # Observatory and ambient brightness monitoring cam. Can be linksys dli
+nk IPVideo9100A or none
+cammodel2 IPVideo9100A                                      # Sky monitoring cam. Can be linksys dlink IPVideo9100A or none
+cam2pwrusbport 1                                            # powerusb outlet to which sky cam is connected
+darkness_threshold 257                                      # darkness level threshold for cam1
+mountmodel PT785S+Pololu                                    # mount model. Can be LXD-75 , PT785S+Pololu or none
+elev_gain 10.32                                             # servo_pos = gain * angle(deg) + offset
+elev_offset 5990                                            #
+elev_channel 1                                              # pololu channel to which elevation servo motor is connected
+azim_gain -10.167                                           # servo_pos = gain * angle(deg) + offset
+azim_offset 7660                                            #
+azim_channel 0                                              # pololu channel to which azimuth servo motor is connected
+Longitude-W 03 43 34                                        # longitude of the observation site
+Latitude-N 40 27 04                                         # latitude of the observation site
+elev_sealevel                                               # site altitude relative to sea level (m)
+Site_name Observatorio-UCM                                  # name of the observation site
+spectral_calib spectral-calib-SAND-4A-2013-06-05.txt        # name of the spectral calibration file (to be located in /home/sand/sv
+n/trunk/Calib_files)
+photometric_calib photometric-calib-SAND-4A-2013-06-05.txt  # name of the photometric calibration file (to be located in /home/sand
+/svn/trunk/Calib_files)

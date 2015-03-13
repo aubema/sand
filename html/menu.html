@@ -1,0 +1,33 @@
+<html>
+<head><META HTTP-EQUIV=REFRESH CONTENT=300></head>
+<body bgcolor="000033"  text="FFCC00" link="FFFFFF" vlink="999999">
+<center><h2>SAND web interface</h2>
+<hr>
+</center>
+<form action=cgi-bin/print.cgi target=print method=get>
+<font size=2pts>Mount operation mode <input type=radio name=mode value=off checked>off <input type=radio name=mode value=on> on <br>
+<hr>
+<input type=radio name=cmd value=timedate checked>Read time and date <br>
+<input type=radio name=cmd value=ls>ls -- folder <input type=text name=folder value=/home/sand/public_html/data><br>
+<input type=radio name=cmd value=gps>Get GPS data <br>
+<input type=radio name=cmd value=ephems>Ephems@<input type=text size=23 name=posephems value='71 09 10 45 27 21 Mont-Megantic'><br>
+<input type=radio name=cmd value=observen>Observe <input type=text size=1 name=nloop value='1'> nights)@ <input type=radio name=sayat value=sun> sunset <input type=radio name=sayat value=ast>astronomical twilight <br>
+<hr>
+<input type=radio name=cmd value=webcam>Take webcam image <br>
+<input type=radio name=cmd value=webcammount>Take mount webcam image <br>
+<input type=radio name=cmd value=ccd>Take CCD image - integration time <input type=text size=2 name=intime value='10'><br>&#160;&#160;&#160;&#160;&#160;CCD temp. <input type=text size=1 name=ccdtemp value='-10'> Image type: <input type=radio name=type value=sky checked>sky <input type=radio name=type value=dark> dark<br>
+<hr>
+<input type=radio name=cmd value=initmount>Initialize mount <br>
+<input type=radio name=cmd value=position>Read mount position <br>
+<input type=radio name=cmd value=goto>Goto: Azimuth: <input type=text size=3 name=azimuth value='90 00'> Elevation:<input type=text size=3 name=elevation value='90 00 '> <br>
+<input type=radio name=cmd value=sensors>Get system temperature <br>
+<input type=radio name=cmd value=scool>Stop CCD cooling <br>
+</font>
+<hr>
+<center><input type=submit value=Execute></center>
+</form>
+<hr>
+
+<center><a href="animation.gif" target=newtab>Link to past 6 hours animation<br><img src="webcamsmall.jpg"></a><br><font  size=-2>Frame update: 5 min.</font></center>
+</body>
+</html>

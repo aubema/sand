@@ -1,0 +1,59 @@
+#!/bin/bash
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+echo "LXD-75 mount initialization..."
+echo "#:I#" > /dev/ttyS0
+echo " 20s"
+sleep 5
+echo " 15s"
+sleep 5
+echo "#:EK9#" > /dev/ttyS0
+sleep 0.75
+echo " 10s"
+echo "#:EK9#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK9#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK9#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK9#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK68#" > /dev/ttyS0
+sleep 0.75
+echo " 05s"
+echo "#:EK68#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK68#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK68#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK68#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK13#" > /dev/ttyS0
+sleep 0.75
+echo "#:EK13#" > /dev/ttyS0
+sleep 0.75
+echo " 00s"
+#set baud rate to 9600
+sleep 0.75
+echo "#:SB6#" > /dev/ttyS0
+sleep 0.75
+# stop tracking
+echo "#:AA#" > /dev/ttyS0
+echo "#:ST00.0#" > /dev/ttyS0

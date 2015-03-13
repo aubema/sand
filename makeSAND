@@ -1,0 +1,41 @@
+#!/bin/bash
+#  Script de compilation du projet SAND
+#  Collee de Sherbrooke
+#    Copyright (C) 2011  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+#
+echo "gfortran source/cphotometrique.f -o cphotometrique"
+gfortran source/cphotometrique.f -o cphotometrique
+echo "gfortran source/integLine.f -o integLine"
+gfortran source/integLine.f -o integLine
+echo "gfortran source/sum_calib_sp.f -o sum_calib_sp"
+gfortran source/sum_calib_sp.f -o sum_calib_sp
+echo "gfortran source/resamplespectrum.f -o resamplespectrum"
+gfortran source/resamplespectrum.f -o resamplespectrum
+echo "gfortran source/keepminonwin.f -o keepminonwin"
+gfortran source/keepminonwin.f -o keepminonwin
+echo "gfortran source/keepmoyonwin.f -o keepmoyonwin"
+gfortran source/keepmoyonwin.f -o keepmoyonwin
+echo "gfortran source/recallage.f -o recallage"
+gfortran source/recallage.f -o recallage
+echo "gfortran source/paul.anal.f -o paul.anal"
+gfortran source/paul.anal.f -o paul.anal
+echo "gfortran source/ScatterData.f -o ScatterData"
+gfortran source/ScatterData.f -o ScatterData
+echo "gfortran source/histogram.f -o histogram"
+gfortran source/histogram.f -o histogram

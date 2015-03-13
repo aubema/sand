@@ -1,0 +1,71 @@
+#!/bin/bash 
+# script pour generer les ephemerides
+# Usage ephems DD MM SS dd mm ss NAME (DD=longitude deg, MM=minute,
+# SS=seconde, dd=latitude deg., mm=minute, ss=seconde, 
+# NAME=site name)
+#
+# Skycalc suppose que les longitudes positives sont vers l'ouest
+#
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+chmod -R u+rwx /home/sand/public_html/cgi-bin
+# conversion de la longitude en deg vers heures
+#  Strip possible leading zero(s) from argument passed
+echo ${#1} ${#2}
+
+if [ ${#1} -eq 2 ] ; then dlon=${1#0} ; else dlon=$1 ; fi
+if [ ${#2} -eq 2 ] ; then mlon=${2#0} ; else mlon=$2 ; fi
+if [ ${#3} -eq 2 ] ; then slon=${3#0} ; else slon=$3 ; fi
+if [ ${#4} -eq 2 ] ; then dlat=${4#0} ; else dlat=$4 ; fi
+if [ ${#5} -eq 2 ] ; then mlat=${5#0} ; else mlat=$5 ; fi
+if [ ${#6} -eq 2 ] ; then slat=${6#0} ; else slat=$6 ; fi
+# calcul de la longitude en heures
+/bin/date +%T" "%Y-%m-%d
+let hourdeg=15
+let deglon="$dlon"*3600+"$mlon"*60+"$slon"
+let seclon="$deglon"/"$hourdeg"
+let hrlon="$seclon"/3600
+let mnlon=("$seclon"-"$hrlon"*3600)/60
+let sclon="$seclon"-"$hrlon"*3600-"$mnlon"*60
+/bin/echo "n" > /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo $hrlon $mnlon $sclon>> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo $4 $5 $6 >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo $7 >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "-" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "-" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "g " >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo " a" >> /home/sand/public_html/cgi-bin/skycalc.in
+/bin/echo "Q" >> /home/sand/public_html/cgi-bin/skycalc.in
+/usr/local/bin/skycalc < /home/sand/public_html/cgi-bin/skycalc.in  > /home/sand/public_html/cgi-bin/skycalc.out
+/bin/cat /home/sand/public_html/cgi-bin/skycalc.out | /bin/sed 's/-ST/UTC/g' | /bin/sed 's/ing twilight/ing astronomical twilight/g' | /bin/sed 's/; /\n/g' | /bin/sed 's/local time/UTC/g' > /home/sand/public_html/cgi-bin/ephems.out
+/bin/echo "Ephemerides for " $7
+/bin/echo "Longitude:" $1 "deg." $2 "min." $3 "sec."
+/bin/echo "Latitude:" $4 "deg." $5 "min." $6 "sec."
+/bin/grep Sun /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep Evening /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep Morning /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep 12-degr /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep Moon /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep dark /home/sand/public_html/cgi-bin/ephems.out
+
+

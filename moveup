@@ -1,0 +1,68 @@
+#!/bin/bash
+# deplacer vers le haut
+# moveup DD ;  DD=degrees S=speed 1=fast 2=slow
+#   
+#    Copyright (C) 2010  Martin Aube
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+if [ "$1" = "" ]
+then echo "usage: moveup DD MM S ;  DD=degrees MM=minute S=speed 1=fast 2=slow"
+     exit 0
+fi
+if [ "$2" = "" ]
+then echo "usage: moveup DD MM S ;  DD=degrees MM=minute S=speed 1=fast 2=slow"
+     exit 0
+fi
+if [ "$3" = "" ]
+then echo "usage: moveup DD MM S ;  DD=degrees MM=minute S=speed 1=fast 2=slow"
+     exit 0
+fi
+readmount "EL" 0
+read D M S < mount.tmp 
+let min="$1"*60+"$2"
+rm -f mount.tmp
+if [ "$3" -eq 1 ] 
+then echo "#:RS#" > /dev/ttyS0
+let timi=11*min/6000
+let timd=11*min/600-timi*10
+let timc=11*min/60-timd*10-timi*100
+let timm=11*10*min/60-timc*10-timd*100-timi*1000
+let timn=0
+elif [ "$3" -eq 2 ]
+then echo "#:RM#" > /dev/ttyS0
+let timi=16*min/600
+let timd=16*min/60-timi*10
+let timc=16*min/6-timd*10-timi*100
+let timm=16*10*min/6-timc*10-timd*100-timi*1000
+let timn=0
+elif [ "$3" -eq 3 ]
+then echo "#:RC#" > /dev/ttyS0
+let timi=3*min/60
+let timd=3*min/6-timi*10
+let timc=3*10*min/6-timd*10-timi*100
+let timm=3*100*min/6-timc*10-timd*100-timi*1000
+let timn=3*1000*min/6-timm*10-timc*100-timd*1000-timi*10000
+fi
+sleep 0.2
+echo "#:Mn#" > /dev/ttyS0
+sleep $timi"."$timd$timc$timm$timn
+echo "#:Qn#" > /dev/ttyS0
+readmount "EL" 0
+read D M S < mount.tmp 
+exit 1
+
+
