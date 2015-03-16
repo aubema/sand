@@ -1,8 +1,3 @@
- Fichier README pour le module mount de SAND
+README for mount module of the SAND spectrometer
 
-Pour fonctionner adéquatement, l'horloge de l'ordinateur doit être fixée à 
-UTC.
-
-Le contrôle de la monture est complètement fait via la communication avec le port serie /sev/ttyS0 en language BASH. Le code repose sur quelques dépendances telles 
-que skycalcV5 et nightview (incluant sbig universal driver).
-
+To work correctly, the computer clock must be set to GMT.
