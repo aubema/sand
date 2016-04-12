@@ -176,7 +176,7 @@ do let nl=nl+1
 #
    myFile="observation_list"
    if [ ! -f /home/sand/public_html/cgi-bin/$myFile ]
-   then /bin/cp /home/sand/svn/sand/trunk/mount/observation_list /home/sand/public_html/cgi-bin/
+   then /bin/cp /home/sand/hg/sand/cgi-bin/observation_list /home/sand/public_html/cgi-bin/
         /bin/echo "Retrieving original observation_list"
    fi
 #

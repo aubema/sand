@@ -41,7 +41,7 @@ echo $star > star.tmp
 let delay=60
 let i=0
  while [ $i -le 2 ]; do 
-/home/sand/svn/trunk/star.py < star.tmp | sed 's/:/ /g' | sed 's/\./ /g' > calib.tmp
+/home/sand/hg/sand/star.py < star.tmp | sed 's/:/ /g' | sed 's/\./ /g' > calib.tmp
 read altd altm alts bidon azd azm azs bidon < calib.tmp
 echo "alt"$altd $altm $alts "az"$azd $azm $azs
 if [ $mountmodel = "LXD-75" ] 
@@ -153,7 +153,7 @@ let delay=30
 
 let i=0
  while [ $i -le 2 ]; do 
-/home/sand/svn/trunk/star.py < star.tmp | sed 's/:/ /g' | sed 's/\./ /g' > calib.tmp
+/home/sand/hg/sand/star.py < star.tmp | sed 's/:/ /g' | sed 's/\./ /g' > calib.tmp
 read altd altm alts bidon azd azm azs bidon < calib.tmp
 echo "alt"$altd $altm $alts "az"$azd $azm $azs
 if [ $mountmodel = "LXD-75" ]

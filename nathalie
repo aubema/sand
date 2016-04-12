@@ -20,13 +20,13 @@
 #         define photometric calibration
 #photodir: photometric calibration file path
 #photo: photometric calibration file name
-photodir="/home/sand/svn/trunk/Calib_files" 
+photodir="/home/sand/hg/sand/Calib_files" 
 grep photometric_calib /home/sand/localconfig > cal.tmp
 read bidon photo bidon < cal.tmp
 #         define spectral calibration 
 #spectraldir: spectral calibration file path
 #spectral: spectral calibration file name
-spectraldir="/home/sand/svn/trunk/Calib_files" 
+spectraldir="/home/sand/hg/sand/Calib_files" 
 grep spectral_calib /home/sand/localconfig > cal.tmp
 read bidon spectral bidon < cal.tmp
 
