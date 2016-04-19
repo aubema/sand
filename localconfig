@@ -16,7 +16,7 @@ azim_offset 7660                                            #
 azim_channel 0                                              # pololu channel to which azimuth servo motor is connected
 Longitude-W 03 43 34                                        # longitude of the observation site
 Latitude-N 40 27 04                                         # latitude of the observation site
-elev_sealevel                                               # site altitude relative to sea level (m)
+elev_sealevel     0                                         # site altitude relative to sea level (m)
 Site_name Observatorio-UCM                                  # name of the observation site
 spectral_calib spectral-calib-SAND-4A-2013-06-05.txt        # name of the spectral calibration file (to be located in /home/sand/hg/sand/Calib_files)
 photometric_calib photometric-calib-SAND-4A-2013-06-05.txt  # name of the photometric calibration file (to be located in /home/sand/hg/sand/Calib_files)
