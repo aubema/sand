@@ -11,7 +11,7 @@
 # -a is the "beginning at" flag. value may be sun for sunset, ast for astronomical 
 #    twilight or any time H:M 
 # -l is the loop flag. value give the number of consecutive observing night. 0 = infinity
-# -i is the instrument flag. value could be sp for spectrometer and ph for photometer
+# -i is the instrument flag. value could be sp for spectrometer, ph for photometer or ra for radiometer
 # -d begin after given delay and stopping before the same delay
 # -t force a cooling Temperature in Kelvin otherwise the system will determine 
 #    the cooling temp with ambiant temp minus cooldif. Must be a positive integer value.
@@ -130,7 +130,7 @@ done
 shift $(($OPTIND - 1))
 echo "Starting observation with:"
 echo "   mount mode =" $mval " (off = mount off, on = mount on)"
-echo "   instrument =" $ival " (sp = spectrometer, ph = 5 filters wheel photometer)"
+echo "   instrument =" $ival " (sp = spectrometer, ph = 5 filters wheel photometer, ra = 12 filter wheel radiometer)"
 echo "   begin night at" $aval "+ " $dval" min (sun = sunset, ast = astronomical twilight, H:M = other time)" 
 echo "   Number of nights =" $lval " (0 = infinity)"
 # setting mount acceleration to minimal value
@@ -726,6 +726,12 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
               /bin/rm -f /home/sand/public_html/cgi-bin/dark.fits
          fi
       fi
+      if [ $ival = "ra" ]
+#     12 narrowband filter wheel radiometer
+      then 
+         /usr/local/observe-sqm-servo.bash 
+      fi
+
 #
 #     entry to log file
 #
