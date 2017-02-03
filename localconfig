@@ -20,3 +20,5 @@ elev_sealevel     0                                         # site altitude rela
 Site_name Observatorio-UCM                                  # name of the observation site
 spectral_calib spectral-calib-SAND-4A-2013-06-05.txt        # name of the spectral calibration file (to be located in /home/sand/hg/sand/Calib_files)
 photometric_calib photometric-calib-SAND-4A-2013-06-05.txt  # name of the photometric calibration file (to be located in /home/sand/hg/sand/Calib_files)
+filterpos 1200 1302 2000 2010 2013 ...                                # positions of the 13 filters
+filter_channel 5                                            # filter wheel moter pololu channel
