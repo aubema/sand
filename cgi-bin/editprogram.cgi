@@ -16,7 +16,7 @@ echo "<center><input type=submit value=Update></center>"
 echo "</form>"
 echo "</center>"
 echo "Example:<br><pre>"
-cat /home/sand/svn/sand/trunk/mount/cgi-bin/observation_list
+cat /home/sand/hg/sand/mount/cgi-bin/observation_list
  echo "</pre></body>"
 echo "</html>"
 echo $QUERY_STRING | sed "s/program=//g" | sed "s/%0D%0A/\n/g" | sed "s/%09//g"| sed "s/+/ /g" > observation_list
