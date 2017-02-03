@@ -4,7 +4,7 @@ nohup observe -a sun -d 60 &
 powerusbport 3                                              # powerusb outlet to which CCD is connected
 powerusbversion 32                                          # can be 32 of 64 depending on CPU arch
 cammodel1 dlink                                             # Observatory and ambient brightness monitoring cam. Can be linksys dlink IPVideo9100A or none
-cammodel2 IPVideo9100A                                      # Sky monitoring cam. Can be linksys dlink IPVideo9100A or none
+cammodel2 IPVideo9100A                                      # Sky monitoring cam. Can be linksys dlink IPVideo9100A raspberry-pi or none
 cam2pwrusbport 1                                            # powerusb outlet to which sky cam is connected
 darkness_threshold 257                                      # darkness level threshold for cam1
 mountmodel PT785S+Pololu                                    # mount model. Can be LXD-75 , PT785S+Pololu or none

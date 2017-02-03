@@ -2,7 +2,7 @@
 # script pour prendre une image de la ip webcam
 # supporte la ip webcam linksys et la d-link mais il faut definir le model
 # sur la ligne ci-dessous
-# valeurs cammodel="dlink" ou cammodel="linksys"
+# valeurs cammodel="dlink" ou cammodel="linksys" ou "raspberry-pi"
 #   
 #    Copyright (C) 2010  Martin Aube
 #
@@ -22,7 +22,7 @@
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
 # 
-cammodel1="linksys"
+cammodel1="raspberry-pi"
 cammodel2="none"
 y=`date +%Y`
 mo=`date +%m`
@@ -68,6 +68,11 @@ then /usr/bin/curl -m 1 http://sand:memo123@192.168.1.101/GetData.cgi -o fifo.mj
      /usr/bin/convert toto.png obs.jpg
      rm -f img*png
 fi
+if [ $cammodel1 = "raspberry-pi" ]
+then python /usr/local/bin/rasp-image.py
+     mv -f image1.jpg obs.jpg
+fi
+
 if [ $cammodel1 = "none" ]
 then mean=0
      /bin/echo $mean > /home/sand/public_html/cgi-bin/webcam-mean  
@@ -97,7 +102,10 @@ then /usr/bin/curl -m 1 http://sand:memo123@192.168.1.102/GetData.cgi -o fifo.mj
      /usr/bin/convert toto.png sky.jpg
      rm -f img*png
 fi
-
+if [ $cammodel2 = "raspberry-pi" ]
+then python /usr/local/bin/rasp-image.py
+     mv -f image1.jpg sky.jpg
+fi
 
 # mesurer le niveau de gris moyen (mean) sur cammodel1
 /usr/bin/identify -verbose /home/sand/public_html/cgi-bin/obs.jpg | /bin/grep mean | /bin/sed 's/mean://g' |  /usr/bin/tr -d '\n' > /home/sand/public_html/cgi-bin/mean.tmp
