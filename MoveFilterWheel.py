@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 # usage MoveFilterWheel.py position channel
 import maestro
 pos = input()
