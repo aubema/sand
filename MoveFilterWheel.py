@@ -13,7 +13,7 @@ pos = args.p
 chan = args.c
 servo = maestro.Controller()
 servo.setAccel(chan,4) # set acceleration
-servo.setSpeed(chan,30) # set speed
+servo.setSpeed(chan,50) # set speed
 servo.setTarget(chan,4000) # go to 4000
 time.sleep(3)
 servo.setTarget(chan,pos) # move to filter pos
