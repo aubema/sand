@@ -25,13 +25,13 @@ waittime=1
 # wavelengths    1    2     3       4       5     6       7       8        9       10       11        12
 filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
 grep filter_channel /home/sand/localconfig > toto
-read bidon channel < toto
+read bidon channel bidon < toto
 grep filter_gain /home/sand/localconfig > toto
-read bidon gain < toto
+read bidon gain  bidon < toto
 grep filter_offset /home/sand/localconfig > toto
-read bidon offset < toto
+read bidon offset bidon < toto
 grep sqmIP /home/sand/localconfig > toto
-read bidon sqmip < toto
+read bidon sqmip bidon < toto
 i=0
 while [ $i -lt $nobs ]
 do n=0
