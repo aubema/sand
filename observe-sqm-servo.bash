@@ -30,6 +30,8 @@ grep filter_gain /home/sand/localconfig > toto
 read bidon gain < toto
 grep filter_offset /home/sand/localconfig > toto
 read bidon offset < toto
+grep sqmIP /home/sand/localconfig > toto
+read bidon sqmip < toto
 i=0
 while [ $i -lt $nobs ]
 do n=0
