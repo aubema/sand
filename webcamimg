@@ -69,8 +69,7 @@ then /usr/bin/curl -m 1 http://sand:memo123@192.168.1.101/GetData.cgi -o fifo.mj
      rm -f img*png
 fi
 if [ $cammodel1 = "raspberry-pi" ]
-then python /usr/local/bin/rasp-image.py
-     mv -f image1.jpg obs.jpg
+then raspistill -n -o obs.jpg  # -ss can be used to define the exposure time in microseconds 
 fi
 
 if [ $cammodel1 = "none" ]
@@ -103,8 +102,7 @@ then /usr/bin/curl -m 1 http://sand:memo123@192.168.1.102/GetData.cgi -o fifo.mj
      rm -f img*png
 fi
 if [ $cammodel2 = "raspberry-pi" ]
-then python /usr/local/bin/rasp-image.py
-     mv -f image1.jpg sky.jpg
+then raspistill -n -o sky.jpg
 fi
 
 # mesurer le niveau de gris moyen (mean) sur cammodel1
