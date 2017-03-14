@@ -44,7 +44,7 @@ do n=0
       ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 #      servoang=`echo $ang | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
 
-      echo "deplacement de la roue" $channel $servoang
+      echo "deplacement de la roue" $channel $ang
 
 # moving filter wheel
       /usr/local/bin/MoveFilterWheel.py $ang $channel       
