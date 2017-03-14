@@ -1,35 +1,53 @@
-channel=5
-sqmip="192.168.0.200"
+#!/bin/bash 
+#   
+#    Copyright (C) 2017  Martin Aube Jeremie Gince
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+# 
 nobs=10
-    mono /usr/local/bin/UscCmd --accel $channel,40
-    mono /usr/local/bin/UscCmd --speed $channel,40
-gain=1 
-#43,64 gain normal
 waittime=1
-offset=3600 
-
+#
 # set angles list
-#         1    2     3       4       5     6       7       8        9       10       11        12
-angles=( 0.9 70*15 55*30 48.5*45 48.5*60 47*75 46.5*90 45.5*105 45.5*120 44.5*135 44.5*150 43.84*165 )
-calib=( 0.3079628655 0.0610003776 0.0240134349 0.0475081568 0.0324283742 0.0196314445 0.0181267619 0.0178495913 0.0222421521 0.0228081498 0.013580985 1.0 )
+# wavelengths    1    2     3       4       5     6       7       8        9       10       11        12
+filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
+grep filter_channel /home/sand/localconfig > toto
+read bidon channel < toto
+grep filter_gain /home/sand/localconfig > toto
+read bidon gain < toto
+grep filter_offset /home/sand/localconfig > toto
+read bidon offset < toto
 i=0
 while [ $i -lt $nobs ]
 do n=0
-     echo "Start"
-     let i=i+1
-    echo "observation numéro: " $i
-   sudo mono /usr/local/bin/UscCmd --servo 5,4200
-   
-   while [ $n -lt ${#angles[*]} ]
-   do angle=${angles[$n]}
+   echo "Start"
+   let i=i+1
+   echo "observation numéro: " $i
+   while [ $n -lt ${#filters[*]} ]
+   do filter=${filters[$n]}
 
-      ang=`/bin/echo "scale=0;"$angle"*"$gain"+"$offset |/usr/bin/bc -l`
-      servoang=`echo $ang | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
+#      servoang=`echo $ang | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+
       echo "deplacement de la roue" $channel $servoang
 
-      mono /usr/local/bin/UscCmd --servo $channel","$servoang 
+# moving filter wheel
+      MoveFilterWheel.py $ang $channel       
       echo "lecture du sqm, "  "Filtre: "  $(($n+1))
-      ./sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
+      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read toto sb toto < toto.tmp
