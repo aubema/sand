@@ -22,7 +22,7 @@ nobs=10
 waittime=1
 #
 # set angles list
-# wavelengths    1    2     3       4       5     6       7       8        9       10       11        12
+# wavelengths 0:= 405 ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= vide ,12:= vide
 filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
 grep filter_channel /home/sand/localconfig > toto
 read bidon channel bidon < toto
@@ -66,16 +66,7 @@ nomfich=`date -u +"%m-%d-%y"`
 
 time=`date -u`
 echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> radio-$nomfich".txt"
-
-
-   echo "Retour au point initial"
-   sudo mono /usr/local/bin/UscCmd --servo 5,4200
-   /bin/sleep $waittime
+/bin/sleep $waittime
    
 done
 echo "Finish"
-# (# filtre/courbe de correction)| 1:=0,3079628655 2:=0,0610003776 3:=0,0240134349 4:=0,0475081568 5:=0,0324283742 6:=0,0196314445
-                                 | 7:=0,0181267619 8:=0,0178495913 9:=0,0222421521 10:=0,0228081498 11:=0,013580985
-# (numero angle/longueur d onde en nm) 1:= 405 ,2:= 420 3:= 435.8 ,4:= 460 ,5:= 500 ,6:= 530 ,7:= 546.1 ,8:= 560 ,9:= 568.2 ,10:= 630 ,11:= 660 ,12:= vide
-#sudo mono /usr/local/bin/UscCmd --servo 5,3600
-#sudo bash ./observe-sqm-servo.bash
