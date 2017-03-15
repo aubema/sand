@@ -18,8 +18,8 @@
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
 # 
-nobs=10
-waittime=60
+nobs=1
+waittime=60             # at a mag of about 24 the integration time is around 60s
 #
 # set angles list
 # wavelengths 0:= 405 ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= vide ,12:= vide
