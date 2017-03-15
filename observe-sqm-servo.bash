@@ -50,6 +50,7 @@ do n=0
 # moving filter wheel
       /usr/local/bin/MoveFilterWheel.py $ang $channel       
       echo "lecture du sqm, "  "Filtre: "  $(($n+1))
+      /bin/sleep $waittime
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
@@ -59,9 +60,6 @@ do n=0
       sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
       echo ${sbcals[$n]}
       let n=n+1
-      
-      /bin/sleep $waittime
-
    done
 nomfich=`date -u +"%m-%d-%y"`
 
