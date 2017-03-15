@@ -3,10 +3,10 @@
 nohup observe -a sun -d 60 &
 powerusbport 3                                              # powerusb outlet to which CCD is connected
 powerusbversion 32                                          # can be 32 of 64 depending on CPU arch
-cammodel1 dlink                                             # Observatory and ambient brightness monitoring cam. Can be linksys dlink IPVideo9100A or none
-cammodel2 IPVideo9100A                                      # Sky monitoring cam. Can be linksys dlink IPVideo9100A raspberry-pi or none
+cammodel1 raspberry-pi                                      # Observatory and ambient brightness monitoring cam. Can be linksys dlink IPVideo9100A or none
+cammodel2 raspberry-pi                                      # Sky monitoring cam. Can be linksys dlink IPVideo9100A raspberry-pi or none
 cam2pwrusbport 1                                            # powerusb outlet to which sky cam is connected
-darkness_threshold 257                                      # darkness level threshold for cam1
+darkness_threshold 100                                      # darkness level threshold for cam1
 mountmodel PT785S+Pololu                                    # mount model. Can be LXD-75 , PT785S+Pololu or none
 elev_gain 10.32                                             # servo_pos = gain * angle(deg) + offset
 elev_offset 5990                                            #
@@ -23,4 +23,4 @@ photometric_calib photometric-calib-SAND-4A-2013-06-05.txt  # name of the photom
 filter_offset   1550                                        # first filter position
 filter_gain     416                                         # gain to convert the filter number to position from the offset. First filter is 0 (pos=offset+gain*filter_no)
 filter_channel 5                                            # filter wheel moter pololu channel
-sqmIP 192.168.0.200
+sqmIP 192.168.0.200                                         # ip address of the SQM-LE
