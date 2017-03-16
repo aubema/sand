@@ -65,7 +65,7 @@ do n=0
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
-      read toto toto toto tim toto < toto.tmp
+      read toto toto toto toto tim toto < toto.tmp
       echo $tim | sed 's/\.//g' > toto.tmp
       read waittime toto < toto.tmp
       echo "Acquistion time:" $waittime
