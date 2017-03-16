@@ -68,7 +68,8 @@ do n=0
       read toto toto toto toto tim toto < toto.tmp
       echo $tim | sed 's/\./ /g'  > toto.tmp
       read tim toto < toto.tmp
-      echo $tim | sed 's/0//g'  > toto.tmp
+      echo $tim | sed 's/000//g'  > toto.tmp
+echo $tim
       read waittime < toto.tmp
       echo "Acquistion time:" $waittime
       let waittime=waittime*3
