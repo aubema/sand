@@ -68,6 +68,7 @@ do n=0
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
       read toto toto toto toto tim toto < toto.tmp
+      echo "Decimal readout time: " $tim
       echo $tim | sed 's/\./ /g'  > toto.tmp
       read tim toto < toto.tmp
       echo $tim | sed 's/000//g'  > toto.tmp
