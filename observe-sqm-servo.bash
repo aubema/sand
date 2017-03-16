@@ -66,11 +66,13 @@ do n=0
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
       read toto toto toto toto tim toto < toto.tmp
-      echo $tim | sed 's/\.//g' > toto.tmp
-      read waittime toto < toto.tmp
+      echo $tim | sed 's/\./ /g'  > toto.tmp
+      read tim toto < toto.tmp
+      echo $tim | sed 's/0//g'  > toto.tmp
+      read waittime < toto.tmp
       echo "Acquistion time:" $waittime
       let waittime=waittime*3
-      echo "Waiting time:" waittime
+      echo "Waiting time:" $waittime
       ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
