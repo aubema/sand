@@ -59,13 +59,17 @@ do n=0
 # it is suggested to use filter 1 (420nm) to estimate the waittime
 # waittime must be at least twice that time (we suggest 3x)
       ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
-# moving filter wheel
+# moving filter wheel to filter 1
       echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $offset
+      echo "Waiting " $waittime
+      /bin/sleep $waittime
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
       read toto toto toto toto tim toto < toto.tmp
+      echo $tim
+exit 0
       echo $tim | sed 's/\./ /g'  > toto.tmp
       read tim toto < toto.tmp
       echo $tim | sed 's/000//g'  > toto.tmp
