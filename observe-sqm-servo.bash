@@ -67,7 +67,7 @@ echo $tim $timd
 if [ $timd -ge 500 ]
 then let tim=tim+1
 fi
-read waittime < toto.tmp
+let waittime=tim
 if [ $waittime == 0 ]
    then waittime=1
    echo "toto" $waittime
