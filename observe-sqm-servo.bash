@@ -19,7 +19,7 @@
 #
 # 
 nobs=1
-waittime=120             # at a mag of about 24 the integration time is around 60s
+waittime=10             # at a mag of about 24 the integration time is around 60s
 #
 # set angles list
 # wavelengths 0:= 405 ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= vide ,12:= vide
@@ -62,19 +62,21 @@ do n=0
 # moving filter wheel to filter 1
       echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $offset
-      echo "Waiting " $waittime
+      echo "Waiting " $waittime " s to estimate acquisition time"
       /bin/sleep $waittime
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
       read toto toto toto toto tim toto < toto.tmp
-      echo $tim
-exit 0
       echo $tim | sed 's/\./ /g'  > toto.tmp
       read tim toto < toto.tmp
       echo $tim | sed 's/000//g'  > toto.tmp
 echo $tim
       read waittime < toto.tmp
+      if [ $waittime == 0 ]
+      then waittime=1
+echo "toto" $waittime
+      fi
       echo "Acquistion time:" $waittime
       let waittime=waittime*3
       echo "Waiting time:" $waittime
