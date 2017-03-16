@@ -63,7 +63,7 @@ echo $tim | sed 's/\./ /g'  > toto.tmp
 read tim timd toto < toto.tmp
 echo $tim | sed 's/000//g'  > toto.tmp
 read tim toto < toto.tmp
-echo $tim
+echo $tim $timd
 if [ $timd -ge 500 ]
 then let tim=tim+1
 fi
