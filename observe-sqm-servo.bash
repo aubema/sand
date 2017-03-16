@@ -65,11 +65,12 @@ echo $tim | sed 's/000//g'  > toto.tmp
 echo $tim
 read waittime < toto.tmp
 if [ $waittime == 0 ]
-   then waittime=1
+   then waittime=2
    echo "toto" $waittime
+else
+   let waittime=waittime*3
 fi
 echo "Acquistion time:" $waittime
-let waittime=waittime*3
 i=0
 while [ $i -lt $nobs ]
 do n=0
