@@ -69,7 +69,7 @@ then let tim=tim+1
 fi
 read waittime < toto.tmp
 if [ $waittime == 0 ]
-   then waittime=2
+   then waittime=1
    echo "toto" $waittime
 else
    let waittime=waittime*3
