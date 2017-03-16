@@ -42,14 +42,42 @@ do n=0
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
 
-      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
-#      servoang=`echo $ang | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
 
+# according to unihedron here are the typical waiting time vs sky brightness
+# 19.83 = 1s
+# 21.97 = 6.9s
+# 22.69 = 12.8s
+# 23.13 = 18.7s
+# 23.48 = 24.6s
+# 23.76 = 30.5s
+# 24.00 = 36.4s
+# 24.21 = 42.3s
+# 24.41 = 48.2s
+# 24.60 = 54.1s
+# 24.76 = 60s
+#
+# it is suggested to use filter 1 (420nm) to estimate the waittime
+# waittime must be at least twice that time (we suggest 3x)
+      ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
+# moving filter wheel
+      echo "deplacement de la roue" $channel $ang
+      /usr/local/bin/MoveFilterWheel.py $ang $channel $offset
+      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
+      read sqm < sqmdata.tmp
+      echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
+      read toto toto toto tim toto < toto.tmp
+      echo $tim | sed 's/\.//g' > toto.tmp
+      read waittime toto < toto.tmp
+      echo "Acquistion time:" $waittime
+      let waittime=waittime*3
+      echo "Waiting time:" waittime
+      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $offset      
       echo "reading sqm, "  "Filtre: "  $(($n+1))
-      /bin/sleep $waittime
+      /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
+
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
       echo "end of reading"      
       read sqm < sqmdata.tmp
