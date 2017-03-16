@@ -47,7 +47,7 @@ do n=0
 
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
-      /usr/local/bin/MoveFilterWheel.py $ang $channel       
+      /usr/local/bin/MoveFilterWheel.py $ang $channel $offset      
       echo "reading sqm, "  "Filtre: "  $(($n+1))
       /bin/sleep $waittime
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
