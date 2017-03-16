@@ -45,13 +45,13 @@ do n=0
       ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 #      servoang=`echo $ang | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
 
-      echo "deplacement de la roue" $channel $ang
-
 # moving filter wheel
+      echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel       
-      echo "lecture du sqm, "  "Filtre: "  $(($n+1))
+      echo "reading sqm, "  "Filtre: "  $(($n+1))
       /bin/sleep $waittime
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
+      echo "end of reading"      
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read toto sb toto < toto.tmp
