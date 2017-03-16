@@ -60,9 +60,13 @@ echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
 read toto toto toto toto tim toto < toto.tmp
 echo "Decimal readout time: " $tim
 echo $tim | sed 's/\./ /g'  > toto.tmp
-read tim toto < toto.tmp
+read tim timd toto < toto.tmp
 echo $tim | sed 's/000//g'  > toto.tmp
+read tim toto < toto.tmp
 echo $tim
+if [ $timd -ge 500 ]
+then let tim=tim+1
+fi
 read waittime < toto.tmp
 if [ $waittime == 0 ]
    then waittime=2
