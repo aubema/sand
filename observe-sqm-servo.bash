@@ -33,16 +33,6 @@ grep filter_offset /home/sand/localconfig > toto
 read bidon offset bidon < toto
 grep sqmIP /home/sand/localconfig > toto
 read bidon sqmip bidon < toto
-i=0
-while [ $i -lt $nobs ]
-do n=0
-   echo "Start"
-   let i=i+1
-   echo "observation numéro: " $i
-   while [ $n -lt ${#filters[*]} ]
-   do filter=${filters[$n]}
-
-
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
 # 21.97 = 6.9s
@@ -58,28 +48,36 @@ do n=0
 #
 # it is suggested to use filter 1 (420nm) to estimate the waittime
 # waittime must be at least twice that time (we suggest 3x)
-      ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
+ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel to filter 1
-      echo "deplacement de la roue" $channel $ang
-      /usr/local/bin/MoveFilterWheel.py $ang $channel $offset
-      echo "Waiting " $waittime " s to estimate acquisition time"
-      /bin/sleep $waittime
-      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
-      read sqm < sqmdata.tmp
-      echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
-      read toto toto toto toto tim toto < toto.tmp
-      echo "Decimal readout time: " $tim
-      echo $tim | sed 's/\./ /g'  > toto.tmp
-      read tim toto < toto.tmp
-      echo $tim | sed 's/000//g'  > toto.tmp
+echo "deplacement de la roue" $channel $ang
+/usr/local/bin/MoveFilterWheel.py $ang $channel $offset
+echo "Waiting " $waittime " s to estimate acquisition time"
+/bin/sleep $waittime
+/usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
+read sqm < sqmdata.tmp
+echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
+read toto toto toto toto tim toto < toto.tmp
+echo "Decimal readout time: " $tim
+echo $tim | sed 's/\./ /g'  > toto.tmp
+read tim toto < toto.tmp
+echo $tim | sed 's/000//g'  > toto.tmp
 echo $tim
-      read waittime < toto.tmp
-      if [ $waittime == 0 ]
-      then waittime=1
-echo "toto" $waittime
-      fi
-      echo "Acquistion time:" $waittime
-      let waittime=waittime*3
+read waittime < toto.tmp
+if [ $waittime == 0 ]
+   then waittime=1
+   echo "toto" $waittime
+fi
+echo "Acquistion time:" $waittime
+let waittime=waittime*3
+i=0
+while [ $i -lt $nobs ]
+do n=0
+   echo "Start"
+   let i=i+1
+   echo "observation numéro: " $i
+   while [ $n -lt ${#filters[*]} ]
+   do filter=${filters[$n]}
       echo "Waiting time:" $waittime
       ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel
