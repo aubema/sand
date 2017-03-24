@@ -1,5 +1,4 @@
 #!/bin/bash 
-# toto
 # SAND observation script. The script need the /home/sand/public_html/cgi-bin/observation_list file
 # as an input see the online documentation for setting this file
 # 
