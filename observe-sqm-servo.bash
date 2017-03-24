@@ -51,7 +51,8 @@ read bidon sqmip bidon < toto
 ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel to filter 1
 echo "deplacement de la roue" $channel $ang
-/usr/local/bin/MoveFilterWheel.py $ang $channel $offset
+let park=offset
+/usr/local/bin/MoveFilterWheel.py $ang $channel $park
 echo "Waiting " $waittime " s to estimate acquisition time"
 /bin/sleep $waittime
 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
@@ -83,11 +84,16 @@ do n=0
    echo "observation numéro: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
+      if [ $filter -le 6 ]
+      then let park=gain*12+offset
+      else
+           let park=offset
+      fi
       echo "Waiting time:" $waittime
       ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
-      /usr/local/bin/MoveFilterWheel.py $ang $channel $offset      
+      /usr/local/bin/MoveFilterWheel.py $ang $channel $park      
       echo "reading sqm, "  "Filtre: "  $(($n+1))
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
 
