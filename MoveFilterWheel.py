@@ -14,7 +14,7 @@ pos = args.p
 chan = args.c
 park = args.o
 servo = maestro.Controller()
-servo.setAccel(chan,4) # set acceleration
+servo.setAccel(chan,2) # set acceleration
 servo.setSpeed(chan,25) # set speed
 servo.setTarget(chan,park) # go to park position
 time.sleep(3)
