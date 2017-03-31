@@ -23,7 +23,7 @@
 
 
 echo "Start scnanning filters"
-rm -f filters_pos.txt
+rm -f /home/sand/filters_pos.txt
 grep filter_channel /home/sand/localconfig > toto
 read bidon channel bidon < toto
 grep filter_offset /home/sand/localconfig > toto
