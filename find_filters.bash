@@ -46,33 +46,16 @@ let pointav=350000
 
 while [ $scanpoint -le $maxpoint ]
 do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
-echo $n $scanpoint
-   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
-#      read sqm < sqmdata.tmp
-#      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-#      read toto sbdec toto < toto.tmp
 
+   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
-#echo "Decimal readout sb: " $sb
+echo $n $scanpoint $sb
 echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
-#echo $sb | sed 's/000//g'  > toto.tmp
-#read sb toto < toto.tmp
-#echo $sbe $sbd
 
-
-
-#read sqm < sqmdata.tmp
-#echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
-#read toto sb toto toto toto toto < toto.tmp
-#echo $sb | sed 's/\./ /g' | sed 's/\m/ /g' > toto.tmp
- 
-#read sbe sbd toto < toto.tmp
-#echo $sbe $sbd
-#exit 0
 let sb=sbe*100+sbd
 
 if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
