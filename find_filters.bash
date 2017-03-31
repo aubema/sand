@@ -53,7 +53,7 @@ do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
 
 
 read sqm < sqmdata.tmp
-echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
+echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
 echo "Decimal readout sb: " $sb
 echo $sb | sed 's/\./ /g'  > toto.tmp
@@ -72,7 +72,7 @@ echo $sb $sbd
 #read sbe sbd toto < toto.tmp
 #echo $sbe $sbd
 
-let sb = $sbe * 100 + $sbd
+let "sb = $sbe * 100 + $sbd"; echo $sb
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt
