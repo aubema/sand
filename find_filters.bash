@@ -55,7 +55,7 @@ do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
-echo $sb | $ sed 's/.//g' | sed 's/m//g' > toto.tmp
+echo $sb | sed 's/.//g' | sed 's/m//g' > toto.tmp
  
 read sbe sbd toto < toto.tmp
 echo $sbe $sbd
