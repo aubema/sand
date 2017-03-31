@@ -75,6 +75,7 @@ if [ $waittime == 0 ]
 else
    let waittime=waittime*3
 fi
+angle=( $( cat /home/sand/filters_pos.txt ) )
 echo "Acquistion time:" $waittime
 i=0
 while [ $i -lt $nobs ]
@@ -92,28 +93,7 @@ do n=0
       echo "Waiting time:" $waittime
 
 
-
-
-
-
-
-
-#read a outscpt <<< $(grep batch_file_name $1 | cut -f1 -d"#")
-
-#x_sites=( $sx_sites )
-
-#      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
-
-#       read scanpointp < /home/sand/filters_pos.txt
-#       let ang=scanpointp
-
-#a=( $( cat /path/to/filename ) )
-
-#readarray -t array < /home/sand/filters_pos.txt
-
-
-
-
+      ang=${angle[$n]}
 
 
 # moving filter wheel
