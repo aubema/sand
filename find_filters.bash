@@ -71,7 +71,7 @@ echo $sbe $sbd
  
 #read sbe sbd toto < toto.tmp
 echo $sbe $sbd
-exit 0
+#exit 0
 let sb=sbe*100+sbd ; echo $sb
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
