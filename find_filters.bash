@@ -57,10 +57,10 @@ echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
 echo "Decimal readout sb: " $sb
 echo $sb | sed 's/\./ /g'  > toto.tmp
-read sb sbd toto < toto.tmp
+read sbe sbd toto < toto.tmp
 #echo $sb | sed 's/000//g'  > toto.tmp
-read sb toto < toto.tmp
-echo $sb $sbd
+#read sb toto < toto.tmp
+echo $sbe $sbd
 
 
 
