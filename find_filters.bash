@@ -45,8 +45,8 @@ let pointav=350000
 
 
 while [ $scanpoint -le $maxpoint ]
-do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
-   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
+do #/usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
+   #/usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 #      read sqm < sqmdata.tmp
 #      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 #      read toto sbdec toto < toto.tmp
@@ -70,9 +70,9 @@ echo $sb $sbd
 #cho $sb | sed 's/\./ /g' | sed 's/\m/ /g' > toto.tmp
  
 #read sbe sbd toto < toto.tmp
-#echo $sbe $sbd
-
-let sb = $sbe*100+$sbd ; echo $sb
+echo $sbe $sbd
+exit 0
+let sb=sbe*100+sbd ; echo $sb
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt
