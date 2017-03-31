@@ -54,11 +54,13 @@ do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
-echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
+
 echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
 
-let sb=sbe*100+sbd
+let sb=(sbe*100+sbd)/10
+
+echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
 if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -lt $pointaavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt 
