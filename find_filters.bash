@@ -56,7 +56,7 @@ echo $n $scanpoint
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 read toto sb toto toto toto toto < toto.tmp
-echo "Decimal readout sb: " $sb
+#echo "Decimal readout sb: " $sb
 echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
 #echo $sb | sed 's/000//g'  > toto.tmp
@@ -68,12 +68,12 @@ read sbe sbd toto < toto.tmp
 #read sqm < sqmdata.tmp
 #echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
 #read toto sb toto toto toto toto < toto.tmp
-#cho $sb | sed 's/\./ /g' | sed 's/\m/ /g' > toto.tmp
+#echo $sb | sed 's/\./ /g' | sed 's/\m/ /g' > toto.tmp
  
 #read sbe sbd toto < toto.tmp
 #echo $sbe $sbd
 #exit 0
-let sb=sbe*100+sbd ; echo $sb
+let sb=sbe*100+sbd
 
 if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt 
