@@ -60,7 +60,7 @@ echo $sb | sed 's/.//g' | sed 's/m//g' > toto.tmp
 read sbe sbd toto < toto.tmp
 echo $sbe $sbd
 
-let sb=$sbe*100+$sbd
+let sb=$sbe * 100 + $sbd
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt
