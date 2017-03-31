@@ -45,8 +45,8 @@ let pointav=350000
 
 
 while [ $scanpoint -le $maxpoint ]
-do #/usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
-   #/usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
+do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
+   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 #      read sqm < sqmdata.tmp
 #      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
 #      read toto sbdec toto < toto.tmp
