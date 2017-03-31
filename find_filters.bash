@@ -1,3 +1,4 @@
+#!/bin/bash
 #find_filters
 
 
@@ -58,7 +59,7 @@ read sbe sbd toto < toto.tmp
 
 let sb=sbe*100+sbd
 
-if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
+if [[ $sb -gt $pointav && $pointav -le $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt 
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
