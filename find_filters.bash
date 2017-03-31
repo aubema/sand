@@ -72,7 +72,7 @@ echo $sb $sbd
 #read sbe sbd toto < toto.tmp
 #echo $sbe $sbd
 
-let "sb = $sbe * 100 + $sbd"; echo $sb
+let "sb = $sbe*100+$sbd"; echo $sb
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt
