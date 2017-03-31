@@ -109,7 +109,7 @@ do n=0
 
 #a=( $( cat /path/to/filename ) )
 
-readarray -t array < /home/sand/filters_pos.txt
+#readarray -t array < /home/sand/filters_pos.txt
 
 
 
