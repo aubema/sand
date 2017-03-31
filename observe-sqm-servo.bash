@@ -90,7 +90,9 @@ do n=0
            let park=offset
       fi
       echo "Waiting time:" $waittime
-      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
+#      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
+       read scanpointp < filters_pos.txt
+       let ang=scanpointp
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $park      
