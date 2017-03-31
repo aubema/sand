@@ -21,7 +21,7 @@
 #
  
 
-
+n=0
 echo "Start scnanning filters"
 rm -f /home/sand/filters_pos.txt
 grep filter_channel /home/sand/localconfig > toto
@@ -46,6 +46,7 @@ let pointav=350000
 
 while [ $scanpoint -le $maxpoint ]
 do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
+echo $n $scanpoint
    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 #      read sqm < sqmdata.tmp
 #      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
@@ -60,7 +61,7 @@ echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
 #echo $sb | sed 's/000//g'  > toto.tmp
 #read sb toto < toto.tmp
-echo $sbe $sbd
+#echo $sbe $sbd
 
 
 
@@ -70,16 +71,17 @@ echo $sbe $sbd
 #cho $sb | sed 's/\./ /g' | sed 's/\m/ /g' > toto.tmp
  
 #read sbe sbd toto < toto.tmp
-echo $sbe $sbd
+#echo $sbe $sbd
 #exit 0
 let sb=sbe*100+sbd ; echo $sb
 
-      if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
+if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
 then echo $scanpointp >> /home/sand/filters_pos.txt 
-echo "filtre # " $n ; echo "pos " $scanpointp
+     echo "filtre # " $n ; echo "pos " $scanpointp
+     let n=n+1
 fi
 let pointavd=pointav
-let pointav=$sb
+let pointav=sb
 let scanpointp=scanpoint
 let scanpoint=scanpoint+20
 
