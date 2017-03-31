@@ -75,7 +75,8 @@ echo $sbe $sbd
 let sb=sbe*100+sbd ; echo $sb
 
       if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
-then echo $scanpointp >> /home/sand/filters_pos.txt
+then echo $scanpointp >> /home/sand/filters_pos.txt 
+echo "filtre # " $n ; echo "pos " $scanpointp
 fi
 let pointavd=pointav
 let pointav=$sb
