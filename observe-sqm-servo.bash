@@ -90,9 +90,32 @@ do n=0
            let park=offset
       fi
       echo "Waiting time:" $waittime
+
+
+
+
+
+
+
+
+#read a outscpt <<< $(grep batch_file_name $1 | cut -f1 -d"#")
+
+#x_sites=( $sx_sites )
+
 #      ang=`/bin/echo "scale=0;"$filter"*"$gain"+"$offset |/usr/bin/bc -l`
-       read scanpointp < filters_pos.txt
-       let ang=scanpointp
+
+#       read scanpointp < /home/sand/filters_pos.txt
+#       let ang=scanpointp
+
+#a=( $( cat /path/to/filename ) )
+
+readarray -t array < /home/sand/filters_pos.txt
+
+
+
+
+
+
 # moving filter wheel
       echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $park      

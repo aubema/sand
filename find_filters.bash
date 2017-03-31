@@ -60,13 +60,13 @@ echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
 echo $sbe $sbd
 
-let sb=sbe*100+sbd
+let sb=$sbe*100+$sbd
 
-      if [ $sb -gt $pointav && $pointav -lt $pointavd ] 
-then echo $scanpointp >> filters_pos.txt
+      if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
+then echo $scanpointp >> /home/sand/filters_pos.txt
 fi
 let pointavd=pointav
-let pointav=sb
+let pointav=$sb
 let scanpointp=scanpoint
 let scanpoint=scanpoint+20
 
