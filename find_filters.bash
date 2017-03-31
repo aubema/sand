@@ -37,7 +37,7 @@ read bidon gain  bidon < toto
 #Variables
 
 let maxpoint=offset+gain*12+60
-let scanpoint=maxpoint-200
+let scanpoint=maxpoint-1000
 let park=scanpoint
 let pointavd=350000
 let pointav=350000
