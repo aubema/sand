@@ -23,6 +23,7 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 #
 # set angles list
 # wavelengths 0:= 405 ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= vide ,12:= vide
+# possibilite d'ajouter un filtre a 480 ulterieurement (creu DEL)
 filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
 calib=( 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 )
 grep filter_channel /home/sand/localconfig > toto
