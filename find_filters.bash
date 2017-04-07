@@ -49,29 +49,29 @@ let pointaavd=350000
 while [ $scanpoint -le $maxpoint ]
 
 
-   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
+     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 
-read sqm < sqmdata.tmp
-echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-read toto sb toto toto toto toto < toto.tmp
+  read sqm < sqmdata.tmp
+  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
+  read toto sb toto toto toto toto < toto.tmp
 
-echo $sb | sed 's/\./ /g'  > toto.tmp
-read sbe sbd toto < toto.tmp
+  echo $sb | sed 's/\./ /g'  > toto.tmp
+  read sbe sbd toto < toto.tmp
 
-let sb=(sbe*100+sbd)/1
+  let sb=(sbe*100+sbd)/1
 
-echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
+  echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
-if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -lt $pointaavd ]] 
-then echo $scanpointp >> /home/sand/filters_pos.txt 
+  if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -lt $pointaavd ]] 
+  then echo $scanpointp >> /home/sand/filters_pos.txt 
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
-fi
-let pointaavd=pointavd
-let pointavd=pointav
-let pointav=sb
-let scanpointp=scanpoint
-let scanpoint=scanpoint+20
+  fi
+  let pointaavd=pointavd
+  let pointavd=pointav
+  let pointav=sb
+  let scanpointp=scanpoint
+  let scanpoint=scanpoint+20
 
 done
 
