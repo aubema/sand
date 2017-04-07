@@ -37,7 +37,7 @@ read bidon gain  bidon < toto
 #Variables
 
 let maxpoint=offset+gain*12+60
-let scanpoint=maxpoint-1000
+let scanpoint= offset-60
 let park=scanpoint
 let pointavd=350000
 let pointav=350000
@@ -47,7 +47,7 @@ let pointaavd=350000
 
 
 while [ $scanpoint -le $maxpoint ]
-do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
+
 
    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 
@@ -58,7 +58,7 @@ read toto sb toto toto toto toto < toto.tmp
 echo $sb | sed 's/\./ /g'  > toto.tmp
 read sbe sbd toto < toto.tmp
 
-let sb=(sbe*100+sbd)/10
+let sb=(sbe*100+sbd)/1
 
 echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
@@ -71,7 +71,7 @@ let pointaavd=pointavd
 let pointavd=pointav
 let pointav=sb
 let scanpointp=scanpoint
-let scanpoint=scanpoint+40
+let scanpoint=scanpoint+20
 
 done
 
@@ -83,4 +83,4 @@ echo "Scnanning filters finished"
 
 
 
-
+do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
