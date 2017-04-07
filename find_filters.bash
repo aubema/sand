@@ -48,7 +48,7 @@ let pointaavd=350000
 
 while [ $scanpoint -le $maxpoint ]
 
-
+    do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
 
   read sqm < sqmdata.tmp
@@ -63,7 +63,7 @@ while [ $scanpoint -le $maxpoint ]
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
   if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -lt $pointaavd ]] 
-  then echo $scanpointp >> /home/sand/filters_pos.txt 
+  then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
   fi
@@ -83,4 +83,4 @@ echo "Scnanning filters finished"
 
 
 
-do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park 
+
