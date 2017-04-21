@@ -36,8 +36,8 @@ read bidon gain  bidon < toto
 
 #Variables
 
-let maxpoint=offset+gain*12+500
-let scanpoint=offset-500
+let maxpoint=offset+gain*12+200
+let scanpoint=offset-100
 let park=scanpoint
 let pointavd=350000
 let pointav=350000
@@ -62,7 +62,7 @@ while [ $scanpoint -le $maxpoint ]
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
-  if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -lt $pointaavd ]] 
+  if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
   then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
@@ -79,7 +79,7 @@ done
 echo "Scnanning filters finished"
 
 
-
+#&& $pointavd -lt $pointaavd
 
 
 
