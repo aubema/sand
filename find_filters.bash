@@ -62,7 +62,7 @@ while [ $scanpoint -le $maxpoint ]
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
-  if [[ $sb -gt $pointav && $pointav -lt $pointavd ]] 
+  if [[ $sb -gt $pointav && $pointav -lt $pointavd ]]
   then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
@@ -74,7 +74,6 @@ while [ $scanpoint -le $maxpoint ]
   let scanpoint=scanpoint+20
 
 done
-
 
 echo "Scnanning filters finished"
 
