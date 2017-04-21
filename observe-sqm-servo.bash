@@ -50,6 +50,7 @@ read bidon sqmip bidon < toto
 # it is suggested to use filter 1 (420nm) to estimate the waittime
 # waittime must be at least twice that time (we suggest 3x)
 ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
+
 # moving filter wheel to filter 1
 echo "deplacement de la roue" $channel $ang
 let park=offset

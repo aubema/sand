@@ -50,7 +50,7 @@ while [ $scanpoint -le $maxpoint ]
 
     do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
-
+/bin/sleep $waittime
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
