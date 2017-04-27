@@ -44,6 +44,7 @@ let pointav=350000
 let pointaavd=350000
 let pointaaavd=350000
 let scanpointp=scanpoint-20
+sleep 5
 
 #scaning_filters
 
