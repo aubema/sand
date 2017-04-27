@@ -43,7 +43,7 @@ let pointavd=350000
 let pointav=350000
 let pointaavd=350000
 let pointaaavd=350000
-let scanpointp= scanpoint-20
+let scanpointp=scanpoint-20
 
 #scaning_filters
 
@@ -64,7 +64,7 @@ while [ $scanpoint -le $maxpoint ]
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
 
-  if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && -le $pointaaavd]]
+  if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd]]
   then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
@@ -81,7 +81,7 @@ done
 echo "Scnanning filters finished"
 
 
-#
+#bash find_filters.bash
 
 
 
