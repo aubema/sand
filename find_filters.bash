@@ -44,7 +44,9 @@ let pointav=350000
 let pointaavd=350000
 let pointaaavd=350000
 let scanpointp=scanpoint-20
-sleep 5
+
+do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
+sleep 3
 
 #scaning_filters
 
@@ -53,7 +55,8 @@ while [ $scanpoint -le $maxpoint ]
 
     do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
-/bin/sleep $waittime
+   #/bin/sleep $waittime
+  sleep 1
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
