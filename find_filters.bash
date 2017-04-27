@@ -67,6 +67,7 @@ while [ $scanpoint -le $maxpoint ]
   let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
+  echo "_______________________________________________________________________________________"
 
   if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd ]]
   then echo $scanpointp >> /home/sand/filters_pos.txt
