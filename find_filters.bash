@@ -45,7 +45,7 @@ let pointaavd=350000
 let pointaaavd=350000
 let scanpointp=scanpoint-20
 
-do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
+/usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
 sleep 3
 
 #scaning_filters
