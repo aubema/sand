@@ -62,11 +62,11 @@ while [ $scanpoint -le $maxpoint ]
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
 
-  echo $sb | sed 's/\./ /g' > toto.tmp
-  
-read sbe sbd toto < toto.tmp
+  echo $sb | sed 's/\.//g' > toto.tmp
+  read sb toto < toto.tmp
+#read sbe sbd toto < toto.tmp
 echo "f1" $sb $sbe $sbd $toto
-  let sb=(sbe*100+sbd)/1
+  #let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
   
