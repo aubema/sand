@@ -74,8 +74,10 @@ while [ $scanpoint -le $maxpoint ]
   then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
-     let scanpoint=maxpoint-400
-     /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
+                 if [[ $n -eq 1 ]]     
+                     then let scanpoint=maxpoint-400
+                           /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
+                 fi
   fi
 
   let pointaaavd=pointaavd
