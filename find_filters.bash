@@ -57,17 +57,14 @@ while [ $scanpoint -le $maxpoint ]
 
     do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
-   #/bin/sleep $waittime
-  #sleep 1
+  
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
 
   echo $sb | sed 's/\.//g' > toto.tmp
   read sb toto < toto.tmp
-#read sbe sbd toto < toto.tmp
-echo "f1" $sb $sbe $sbd $toto
-  #let sb=(sbe*100+sbd)/1
+  
 
   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
   
@@ -77,12 +74,12 @@ echo "f1" $sb $sbe $sbd $toto
   then echo $scanpointp >> /home/sand/filters_pos.txt
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
+     let scanpoint=maxpoint-400
+     /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
   fi
-echo "f2"
+
   let pointaaavd=pointaavd
-echo "f3"
   let pointaavd=pointavd
-echo "f4"
   let pointavd=pointav
   let pointav=sb
   let scanpointp=scanpoint
@@ -104,6 +101,4 @@ echo "  U "
 
 #bash find_filters.bash
 
-
-#iptables -t nat -I POSTROUTING -s 10.($machinetype).($machinenumber + 0).0/24 -j MASQUERADE
 
