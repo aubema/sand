@@ -91,8 +91,8 @@ done
 
 echo "Scnanning filters finished"
 
-offset=`head -1 filters_pos.txt`
-posf=`tail -1 filters_pos.txt`
+offset=`head -1 /home/sand/filters_pos.txt`
+posf=`tail -1 /home/sand/filters_pos.txt`
 gain=`/bin/echo "scale=0;("$posf"-"$offset")/12" |/usr/bin/bc -l`
 echo $gain $offset > /home/sand/filtersconfig
 
