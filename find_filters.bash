@@ -22,7 +22,7 @@
 #
  
 
-n=0
+
 echo "Start scnanning filters"
 rm -f /home/sand/filters_pos.txt
 grep filter_channel /home/sand/localconfig > toto
@@ -61,7 +61,7 @@ while [ $scanpoint -le $maxpoint ]
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
 
-  echo $sb | sed 's/\./ /g' | > toto.tmp
+  echo $sb | sed 's/\./ /g' > toto.tmp
   read sbe sbd toto < toto.tmp
 
   let sb=(sbe*100+sbd)/1
