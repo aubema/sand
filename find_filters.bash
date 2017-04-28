@@ -63,8 +63,9 @@ while [ $scanpoint -le $maxpoint ]
   read toto sb toto toto toto toto < toto.tmp
 
   echo $sb | sed 's/\./ /g' > toto.tmp
-  read sbe sbd toto < toto.tmp
-echo "f1"
+  
+read sbe sbd toto < toto.tmp
+echo "f1" $sb $sbe $sbd $toto
   let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
