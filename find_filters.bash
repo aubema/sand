@@ -56,7 +56,7 @@ while [ $scanpoint -le $maxpoint ]
     do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
    #/bin/sleep $waittime
-  sleep 1
+  #sleep 1
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' | sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/" > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
@@ -67,7 +67,8 @@ while [ $scanpoint -le $maxpoint ]
   let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
-  echo "_______________________________________________________________________________________"
+  
+  echo "______________________________________________________________________________________"
 
   if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd ]]
   then echo $scanpointp >> /home/sand/filters_pos.txt
