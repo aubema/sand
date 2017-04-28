@@ -36,6 +36,7 @@ read bidon gain  bidon < toto
 
 #Variables
 
+let n=0
 let maxpoint=offset+gain*12+200
 let scanpoint=offset-100
 let park=scanpoint
@@ -63,7 +64,7 @@ while [ $scanpoint -le $maxpoint ]
 
   echo $sb | sed 's/\./ /g' > toto.tmp
   read sbe sbd toto < toto.tmp
-
+echo "f1"
   let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
@@ -75,8 +76,11 @@ while [ $scanpoint -le $maxpoint ]
      echo "filtre # " $n ; echo "pos " $scanpointp
      let n=n+1
   fi
+echo "f2"
   let pointaaavd=pointaavd
+echo "f3"
   let pointaavd=pointavd
+echo "f4"
   let pointavd=pointav
   let pointav=sb
   let scanpointp=scanpoint
