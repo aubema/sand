@@ -58,7 +58,7 @@ while [ $scanpoint -le $maxpoint ]
    #/bin/sleep $waittime
   sleep 1
   read sqm < sqmdata.tmp
-  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
+  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' | sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/" > toto.tmp
   read toto sb toto toto toto toto < toto.tmp
 
   echo $sb | sed 's/\./ /g'  > toto.tmp
