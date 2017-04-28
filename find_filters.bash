@@ -63,9 +63,9 @@ while [ $scanpoint -le $maxpoint ]
 # %> b=${a//0/}  
 read toto sb toto toto toto toto < toto.tmp
 
-  echo $sb | sed 's/\./ /g' | let $sb=${sb//0/} > toto.tmp
+  echo $sb | sed 's/\./ /g' | > toto.tmp
   read sbe sbd toto < toto.tmp
-#
+#let $sb=${sb//0/}
 #sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/"
   let sb=(sbe*100+sbd)/1
 
