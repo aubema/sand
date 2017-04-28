@@ -59,7 +59,6 @@ while [ $scanpoint -le $maxpoint ]
   #sleep 1
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-  #iptables -t nat -I POSTROUTING -s 10.($machinetype).($machinenumber + 0).0/24 -j MASQUERADE
   read toto sb toto toto toto toto < toto.tmp
 
   echo $sb | sed 's/\./ /g' > toto.tmp
@@ -92,5 +91,5 @@ echo "  U "
 #bash find_filters.bash
 
 
-
+#iptables -t nat -I POSTROUTING -s 10.($machinetype).($machinenumber + 0).0/24 -j MASQUERADE
 
