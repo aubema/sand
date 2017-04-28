@@ -59,14 +59,11 @@ while [ $scanpoint -le $maxpoint ]
   #sleep 1
   read sqm < sqmdata.tmp
   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-# %> a=00123
-# %> b=${a//0/}  
-read toto sb toto toto toto toto < toto.tmp
+  read toto sb toto toto toto toto < toto.tmp
 
   echo $sb | sed 's/\./ /g' | > toto.tmp
   read sbe sbd toto < toto.tmp
-#let $sb=${sb//0/}
-#sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/"
+
   let sb=(sbe*100+sbd)/1
 
   echo "finding filtre #: " $n       "pos: "$scanpoint       "magnitude: "$sb"m"
@@ -88,7 +85,7 @@ read toto sb toto toto toto toto < toto.tmp
 done
 
 echo "Scnanning filters finished"
-echo " O O"
+echo " O O "
 echo "  U "
 
 #bash find_filters.bash
