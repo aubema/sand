@@ -58,12 +58,12 @@ while [ $scanpoint -le $maxpoint ]
    #/bin/sleep $waittime
   #sleep 1
   read sqm < sqmdata.tmp
-  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' | sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/" | let $sqm=${sqm//0/} > toto.tmp
+  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g'  > toto.tmp
 # %> a=00123
 # %> b=${a//0/}  
 read toto sb toto toto toto toto < toto.tmp
 
-  echo $sb | sed 's/\./ /g'  > toto.tmp
+  echo $sb | sed 's/\./ /g' | sed "s/^0*\([1-9]\)/\1/;s/^0*$/0/" | let $sb=${sb//0/} > toto.tmp
   read sbe sbd toto < toto.tmp
 
   let sb=(sbe*100+sbd)/1
@@ -87,7 +87,8 @@ read toto sb toto toto toto toto < toto.tmp
 done
 
 echo "Scnanning filters finished"
-
+echo " O O"
+echo "  U "
 
 #bash find_filters.bash
 
