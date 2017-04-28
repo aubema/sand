@@ -28,10 +28,7 @@ filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
 calib=( 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 )
 grep filter_channel /home/sand/localconfig > toto
 read bidon channel bidon < toto
-grep filter_gain /home/sand/localconfig > toto
-read bidon gain  bidon < toto
-grep filter_offset /home/sand/localconfig > toto
-read bidon offset bidon < toto
+read gain offset  bidon < /home/sand/filtersconfig
 grep sqmIP /home/sand/localconfig > toto
 read bidon sqmip bidon < toto
 # according to unihedron here are the typical waiting time vs sky brightness
@@ -77,7 +74,7 @@ if [ $waittime == 0 ]
 else
    let waittime=waittime*3
 fi
-angle=( $( cat /home/sand/filters_pos.txt ) )
+#angle=( $( cat /home/sand/filters_pos.txt ) )
 echo "Acquistion time:" $waittime
 i=0
 while [ $i -lt $nobs ]
@@ -94,8 +91,8 @@ do n=0
       fi
       echo "Waiting time:" $waittime
 
-
-      ang=${angle[$n]}
+ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
+#      ang=${angle[$n]}
 
 
 # moving filter wheel
