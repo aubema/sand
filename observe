@@ -170,6 +170,12 @@ do let nl=nl+1
 #  Neverending loop if lval=0
 #
    fi
+
+
+
+
+
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
    airt=`/usr/local/bin/night_temperature get -t`
 #
 #  observation list file name
@@ -212,6 +218,12 @@ do let nl=nl+1
    done
    /bin/echo "CCD temperature is ok"
     actsec=`/bin/date +%s`
+fi
+
+
+
+
+
 #
 #  reading longitude and latitude from observation schedule
 #
@@ -222,7 +234,9 @@ do let nl=nl+1
         read bidon dd mm ss bidon < /home/sand/public_html/cgi-bin/ligne.tmp
    else 
         echo "Please put something in /home/sand/public_html/cgi-bin/observation_list and restart observe."
-        /usr/local/bin/night_temperature set -off
+        if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
+           /usr/local/bin/night_temperature set -off
+        fi
         exit 1
    fi
 #
@@ -573,11 +587,14 @@ do let nl=nl+1
       read min0 < /home/sand/public_html/cgi-bin/last_image.tmp
       let dmin=min-min0
       if [ "$dmin" -lt 250 ]
-      then /bin/echo "Erasing ghost image (about "$ghosttime "s)"
+      then 
+        if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
+           /bin/echo "Erasing ghost image (about "$ghosttime "s)"
            /bin/echo " Erasing ghost image" >> /home/sand/public_html/data/$logname
            /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
            /usr/local/bin/night_exposure -t $ghosttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/bidon.fits
            /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+        fi
       fi
 #
 #     define image name
@@ -599,7 +616,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
 
 
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
-      /bin/echo "  Beginning of acquisition (image " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
+      /bin/echo "  Beginning of acquisition (data " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
       if [ -f /home/sand/public_html/cgi-bin/webcam-mean ]
       then read lumino < /home/sand/public_html/cgi-bin/webcam-mean
@@ -650,7 +667,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
 #
 #     photometer case
 #
-      if [ $ival = "ph" ]
+      if [ $ival = "ra" ]
 #     5 filter wheel photometer
       then 
          if [ $shutter = "on" ]
