@@ -140,7 +140,7 @@ then mono /usr/local/bin/UscCmd --accel 0,1
 fi
 # checking if there is an instance of observe already running
 ninstance=`ps -A | grep -c observe`
-let ninstance=ninstance-1
+let ninstance=ninstance-1ival
 if [ $ninstance -gt 1 ] 
 then echo "ERROR! No more than one instance of observe can run!"
      echo "Exiting the script."
@@ -387,7 +387,7 @@ fi
                    fi
                    let itime=inttime
                    let dtime=downltime
-                   if [ $ival = "ph" ]
+                   if [ $ival = "ra" ]
                    then let 'itime=inttime*(5+1)'
                         let 'dtime=downltime*(5+1)'
                    fi
@@ -743,7 +743,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
               /bin/rm -f /home/sand/public_html/cgi-bin/dark.fits
          fi
       fi
-      if [ $ival = "ra" ]
+      if [ $ival = "ph" ]
 #     12 narrowband filter wheel radiometer
       then 
          /usr/local/observe-sqm-servo.bash 
