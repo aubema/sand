@@ -470,15 +470,11 @@ do let nl=nl+1
    do let n=n+1
       /bin/echo "/bin/date  +%s" > /home/sand/public_html/cgi-bin/toto.bash
       cursec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`            # this is the current time in seconds
-
       echo "Debug: reading line n=" $n "from a total of " $nligne "lines"
-
       head -$n /home/sand/public_html/cgi-bin/observation_sequence | tail -1 > /home/sand/public_html/cgi-bin/ligne.tmp
       read eled elem eles azid azim azis imtyp inttime < /home/sand/public_html/cgi-bin/ligne.tmp
       let nimg=n
       echo "Azimuth"$azid ":" $azim ":" $azis "Elevation" $eled ":" $elem ":" $eles
-
-      
       if [ $mval = "on" ]
       then /bin/echo "Moving mount to Azimuth:" $azid":"$azim":"$azis "and Elevation:" $eled":"$elem":"$eles "following" $imtyp
            echo "Mount model = " $mountmodel  
