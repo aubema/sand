@@ -31,6 +31,12 @@ read bidon channel bidon < toto
 read gain offset  bidon < /home/sand/filtersconfig
 grep sqmIP /home/sand/localconfig > toto
 read bidon sqmip bidon < toto
+
+if [ ! -f /home/sand/filtersconfig ]
+   then echo "Error: File /home/sand/filtersconfig not found"
+        exit 0
+fi
+
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
 # 21.97 = 6.9s
@@ -115,7 +121,7 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
 nomfich=`date -u +"%m-%d-%y"`
 
 time=`date -u`
-echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> radio-$nomfich".txt"
+echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> /home/sand/public_html/cgi-bin/photom-$nomfich".txt"
 /bin/sleep $waittime
    
 done

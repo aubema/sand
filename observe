@@ -102,9 +102,11 @@ do
         ival="$OPTARG"
         if [ $ival != "sp" ]  
         then if [ $ival != "ph" ]
-             then echo "Unsupported instrument: valid choices are sp or ph"
-                  echo "                        sp = spectrometer and ph = photometer"
-                  exit 1
+             then if [ $ival != "ra" ]
+                  then echo "Unsupported instrument: valid choices are sp, ph, ra"
+                       echo "                        sp = spectrometer, ph = photometer, ra=radiometer"
+                      exit 1
+                  fi
              fi
         fi
     ;;
@@ -130,7 +132,7 @@ done
 shift $(($OPTIND - 1))
 echo "Starting observation with:"
 echo "   mount mode =" $mval " (off = mount off, on = mount on)"
-echo "   instrument =" $ival " (sp = spectrometer, ph = 5 filters wheel photometer, ra = 12 filter wheel radiometer)"
+echo "   instrument =" $ival " (sp = spectrometer, ra = 5 filters wheel radiometer, ph = 12 filter wheel photometer)"
 echo "   begin night at" $aval "+ " $dval" min (sun = sunset, ast = astronomical twilight, H:M = other time)" 
 echo "   Number of nights =" $lval " (0 = infinity)"
 # setting mount acceleration to minimal value
@@ -140,7 +142,7 @@ then mono /usr/local/bin/UscCmd --accel 0,1
 fi
 # checking if there is an instance of observe already running
 ninstance=`ps -A | grep -c observe`
-let ninstance=ninstance-1ival
+let ninstance=ninstance-1
 if [ $ninstance -gt 1 ] 
 then echo "ERROR! No more than one instance of observe can run!"
      echo "Exiting the script."
@@ -170,60 +172,50 @@ do let nl=nl+1
 #  Neverending loop if lval=0
 #
    fi
-
-
-
-
-
-if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
-   airt=`/usr/local/bin/night_temperature get -t`
+   if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
+      airt=`/usr/local/bin/night_temperature get -t`
 #
-#  observation list file name
+#     observation list file name
 #
-   myFile="observation_list"
-   if [ ! -f /home/sand/public_html/cgi-bin/$myFile ]
-   then /bin/cp /home/sand/hg/sand/cgi-bin/observation_list /home/sand/public_html/cgi-bin/
-        /bin/echo "Retrieving original observation_list"
+      myFile="observation_list"
+      if [ ! -f /home/sand/public_html/cgi-bin/$myFile ]
+      then /bin/cp /home/sand/hg/sand/cgi-bin/observation_list /home/sand/public_html/cgi-bin/
+           /bin/echo "Retrieving original observation_list"
+      fi
+#
+#     set CCD temperature
+#
+      /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
+      read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp 
+      /bin/echo "Initial CCD temperature=" $ccdt
+      if [ ! $tval ]
+      then echo "Cooling: Using thermal differential mode"
+#
+#          Cooling temperature differential
+#
+           stmp=`/bin/echo "scale=0;("$airt"-"$cooldif")/1" |/usr/bin/bc -l`
+      else echo "Cooling temperature in manual mode" $tflag $tval
+           let stmp=tval-273
+      fi
+#
+#     rounding temperature to nearest 5 C
+#
+      let stmp="$stmp"/5*5
+      largeur=${#stmp}
+      /usr/local/bin/night_temperature set -t $stmp
+      /bin/echo "Waiting while cooling CCD to "$stmp" C..."
+      let count=0
+      while [ "${ccdt:0:$largeur}" != $stmp -a $count -ne 360 ]  
+      do /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
+         read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp
+         ccdp=`/usr/local/bin/night_temperature get -r`
+         /bin/echo "t="$count" s, T="$ccdt" C, Power="$ccdp"%, Target T="$stmp" C"
+         /bin/sleep 5 
+         let count="$count"+5
+      done
+      /bin/echo "CCD temperature is ok"
+      actsec=`/bin/date +%s`
    fi
-#
-#  set CCD temperature
-#
-   /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
-   read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp 
-   /bin/echo "Initial CCD temperature=" $ccdt
-   if [ ! $tval ]
-   then echo "Cooling: Using thermal differential mode"
-#
-#       Cooling temperature differential
-#
-        stmp=`/bin/echo "scale=0;("$airt"-"$cooldif")/1" |/usr/bin/bc -l`
-   else echo "Cooling temperature in manual mode" $tflag $tval
-        let stmp=tval-273
-   fi
-#
-#  rounding temperature to nearest 5 C
-#
-   let stmp="$stmp"/5*5
-   largeur=${#stmp}
-   /usr/local/bin/night_temperature set -t $stmp
-   /bin/echo "Waiting while cooling CCD to "$stmp" C..."
-   let count=0
-   while [ "${ccdt:0:$largeur}" != $stmp -a $count -ne 360 ]  
-   do /usr/local/bin/night_temperature get -t > /home/sand/public_html/cgi-bin/ccdt.tmp
-      read ccdt < /home/sand/public_html/cgi-bin/ccdt.tmp
-      ccdp=`/usr/local/bin/night_temperature get -r`
-      /bin/echo "t="$count" s, T="$ccdt" C, Power="$ccdp"%, Target T="$stmp" C"
-      /bin/sleep 5 
-      let count="$count"+5
-   done
-   /bin/echo "CCD temperature is ok"
-    actsec=`/bin/date +%s`
-fi
-
-
-
-
-
 #
 #  reading longitude and latitude from observation schedule
 #
@@ -391,6 +383,11 @@ fi
                    then let 'itime=inttime*(5+1)'
                         let 'dtime=downltime*(5+1)'
                    fi
+                   if [ $ival = "ph" ]
+                   then let 'itime=10'                     # creating a very long sequence and we will exit it upon end of night
+                        let 'dtime=0'
+                        let 'ghosttime=0'
+                   fi
                    let olisttime=olisttime+dtime+ghosttime
                    if [ $olisttime -lt $duration ]
                    then echo $eled $elem $eles $azid $azim $azis $imtyp $inttime >> /home/sand/public_html/cgi-bin/observation_sequence
@@ -409,7 +406,6 @@ fi
         tail -$nimgtot /home/sand/public_html/cgi-bin/$myFile > /home/sand/public_html/cgi-bin/observation_sequence
    fi
    echo "Desired starting time:" $hour":"$min"+"$dval"min" 
-
 #
 #  Wait for beginning of observation sequence
 #
@@ -463,14 +459,17 @@ fi
    /bin/echo " Ephemerides:" >> /home/sand/public_html/data/$logname
    /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME >> /home/sand/public_html/data/$logname
 #  line data variable
-#   myLine=""
+#  myLine=""
 #
 #  Loop over each observation line
 #
    let n=0
    let nimgtot=nligne
-   while [ $n -lt  $nligne ]
+   let cursec=0
+   while [ $n -lt  $nligne ] && [ $cursec -lt $finsec ]                      
    do let n=n+1
+      /bin/echo "/bin/date  +%s" > /home/sand/public_html/cgi-bin/toto.bash
+      cursec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`            # this is the current time in seconds
 
       echo "Debug: reading line n=" $n "from a total of " $nligne "lines"
 
@@ -488,40 +487,6 @@ fi
 #          look tracking.bash
            /home/sand/public_html/cgi-bin/ligne.tmp >  /home/sand/public_html/cgi-bin/tracking.tmp
            /usr/local/bin/tracking.bash 
-           
-#
-#               not usefull anymore since the remote does the movement by itself 
-#               we keep it only because we might need it someday 
-#
-#               move elevation to zenith to be sure that no limit swicth will be activated
-#
-#                /usr/local/bin/movetoel 90 00 0
-#
-#               move azimuth
-#
-#                if [ $azid -eq 0 ] ; then if [ $azim -eq 0 ] ; then let azim=3 ; fi ; fi
-#                if [ $azid -eq 360 ] ; then if [ $azim -eq 0 ] ; then let azid=359 ; let azim=57 ; fi ; fi
-#                if [ $azid -eq 359 ] ; then if [ $azim -eq 59 ] ; then let azim=57 ; fi ; fi
-#               first goto mount mid position = south (az=180)
-#                /usr/local/bin/movetoaz 180 00 0
-#               then goto right position
-#                /usr/local/bin/movetoaz $azid $azim 0
-#
-#               move elevation
-#
-#                /usr/local/bin/movetoel $eled $elem 0
-#
-#               return to zenith
-#
-#                /usr/local/bin/movetoel 90 00 0
-#
-#               goto azimuth 90
-#
-#               /usr/local/bin/movetoaz 90 00 0    
-#
-#              do initmount (to reduce the chance of long term bugs with the mount
-#    
-#               /usr/local/bin/initmount
           elif [ $mountmodel = "PT785S+Pololu" ]
 #
 #              read channels, gain and offset for angle to servo position conversion
@@ -587,14 +552,13 @@ fi
       read min0 < /home/sand/public_html/cgi-bin/last_image.tmp
       let dmin=min-min0
       if [ "$dmin" -lt 250 ]
-      then 
-        if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
-           /bin/echo "Erasing ghost image (about "$ghosttime "s)"
-           /bin/echo " Erasing ghost image" >> /home/sand/public_html/data/$logname
-           /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
-           /usr/local/bin/night_exposure -t $ghosttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/bidon.fits
-           /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
-        fi
+      then if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
+              /bin/echo "Erasing ghost image (about "$ghosttime "s)"
+              /bin/echo " Erasing ghost image" >> /home/sand/public_html/data/$logname
+              /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+              /usr/local/bin/night_exposure -t $ghosttime -pn -s off -b 1 -o /home/sand/public_html/cgi-bin/bidon.fits
+              /bin/rm -f /home/sand/public_html/cgi-bin/bidon.fits
+           fi
       fi
 #
 #     define image name
@@ -608,16 +572,15 @@ fi
 #     entry to log file
       begin=`/bin/date +%T" "%Y-%m-%d`
       /bin/echo "Beginning of acquisition (image " $nimg"/"$nimgtot") @ " $begin
-
-echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $elem "min" $eles "sec" 
-
-
-
-
-
+      echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $elem "min" $eles "sec" 
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
       /bin/echo "  Beginning of acquisition (data " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
+#     scan the photometer filters
+      if [ $ival = "ph" ]
+      then bash /usr/local/bin/find_filters.bash
+      fi
+#
       if [ -f /home/sand/public_html/cgi-bin/webcam-mean ]
       then read lumino < /home/sand/public_html/cgi-bin/webcam-mean
       else echo "No webcam available or damaged webcam, ignoring luminosity check"
@@ -668,7 +631,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
 #     photometer case
 #
       if [ $ival = "ra" ]
-#     5 filter wheel photometer
+#     5 filter wheel radiometer
       then 
          if [ $shutter = "on" ]
          then echo "shutter=" $shutter
@@ -744,11 +707,10 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
          fi
       fi
       if [ $ival = "ph" ]
-#     12 narrowband filter wheel radiometer
-      then 
-         /usr/local/observe-sqm-servo.bash 
+#     12 narrowband filter wheel photometer
+      then echo "reading photometer data"
+         bash /usr/local/observe-sqm-servo.bash 
       fi
-
 #
 #     entry to log file
 #
@@ -776,35 +738,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
       /bin/echo "  End of acquisition @ " $end >> /home/sand/public_html/data/$logname
       /bin/echo " -----------------------------------------------" >> /home/sand/public_html/data/$logname
       /bin/echo $min > /home/sand/public_html/cgi-bin/last_image.tmp
-# this section was intented to determine if the last image can be take before the end of the night
-# this is not working so we decided to comment it
-#     read current time
-#
-#      starty=`/bin/date +%Y`
-#      startmo=`/bin/date +%m`
-#      startj=`/bin/date +%d`
-#      startm=`/bin/date +%M`
-#      starth=`/bin/date +%H`
-#      starts=`/bin/date +%S`
-#      /bin/echo "/bin/date --date='"$starty-$startmo-$startj $starth:$startm:$starts"' +%s" > /home/sand/public_html/cgi-bin/toto.bash
-#      startsec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`
-#      let startn=n+1
-#      head -$startn /home/sand/public_html/cgi-bin/observation_sequence | tail -1 > /home/sand/public_html/cgi-bin/startline.tmp
-#      read bidon bidon bidon bidon bidon startdt bidon < /home/sand/public_html/cgi-bin/startline.tmp
-#      rm -f /home/sand/public_html/cgi-bin/startline.tmp
-#      let startsec=startsec+stardt
-#      if [ $startsec -gt $finsec ]
-#      then let n=nligne
-#      fi
-
-
-
-#   done < /home/sand/public_html/cgi-bin/observation_sequence
    done
-
-
-
-
    /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
    /bin/echo " End of observing run  "  >> /home/sand/public_html/data/$logname
    /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
@@ -846,6 +780,7 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
    fi
    /bin/chmod a+rx $outdir"/"$logname
    /bin/mv -f /home/sand/public_html/cgi-bin/*.fits $outdir
+   /bin/mv -f /home/sand/public_html/cgi-bin/photom-* $outdir
    /bin/mv -f /home/sand/public_html/cgi-bin/*.phot $outdir
    /bin/rm -f /home/sand/public_html/cgi-bin/skycalc.*
    /bin/rm -f /home/sand/public_html/cgi-bin/toto.bash
@@ -866,8 +801,8 @@ echo "Mount to AZ:" $azid "deg" $azim "min" $azis "sec and EL:" $eled "deg" $ele
         then /bin/echo "Parking PT785S+Pololu mount"
              sel=`/bin/echo "scale=0;180.*"$elev_gain"+"$elev_offset |/usr/bin/bc -l`
              saz=`/bin/echo "scale=0;0.*"$azim_gain"+"$azim_offset |/usr/bin/bc -l`
-servoel=`echo $sel | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
-servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+             servoel=`echo $sel | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
+             servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1);else printf("%d\n",$1)}'`
              mono /usr/local/bin/UscCmd --servo $elev_channel,$servoel 
              mono /usr/local/bin/UscCmd --servo $azim_channel,$servoaz 
              /bin/sleep $movetime2
@@ -875,7 +810,7 @@ servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1)
         fi
    fi
 #
-# analysing data in background
+#  analysing data in background
 #
    if [ $ival = "sp" ] 
    then if [ "$lval" != "1" ]
@@ -896,4 +831,3 @@ servoaz=`echo $saz | awk -F\. '{if(($2/10^length($2)) >= .5) printf("%d\n",$1+1)
         done
    fi
 done
-     
