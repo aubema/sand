@@ -219,6 +219,7 @@ do let nl=nl+1
 #
 #  reading longitude and latitude from observation schedule
 #
+echo "toto" $myFile
    if [ `grep -c " " /home/sand/public_html/cgi-bin/$myFile` -ne 0 ]
    then /bin/grep Longitude /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
         read bidon DD MM SS bidon < /home/sand/public_html/cgi-bin/ligne.tmp
