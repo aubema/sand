@@ -66,6 +66,8 @@ movetime2=20
 downltime=4
 # cooling temperature differential
 cooldif=25
+#
+      myFile="observation_list"
 # ======
 # using getopts
 #
@@ -177,7 +179,7 @@ do let nl=nl+1
 #
 #     observation list file name
 #
-      myFile="observation_list"
+
       if [ ! -f /home/sand/public_html/cgi-bin/$myFile ]
       then /bin/cp /home/sand/hg/sand/cgi-bin/observation_list /home/sand/public_html/cgi-bin/
            /bin/echo "Retrieving original observation_list"
