@@ -217,6 +217,12 @@ do let nl=nl+1
       done
       /bin/echo "CCD temperature is ok"
    fi
+#  scan the photometer filters
+   if [ $ival = "ph" ]
+   then bash /usr/local/bin/find_filters.bash
+   fi
+
+
    actsec=`/bin/date +%s`
 #
 #  reading longitude and latitude from observation schedule
@@ -318,14 +324,12 @@ echo "toto" $myFile
    fi
    let duration=finsec-debsec
    echo "debug: duration=" $duration "finsec=" $finsec " debsec=" $debsec
+   
 #
 #  computing waiting time before beginning of run
 #
    let dsec="$debsec"-"$actsec"
-#  scan the photometer filters
-   if [ $ival = "ph" ]
-   then bash /usr/local/bin/find_filters.bash
-   fi
+
    if [ "$dsec" -le 0 ]
    then echo "Observation beginning is passed (dsec=" $dsec ")"
         if [ "$dsec" -le -21600 ]  # if the desired beginning of observation time seems more that 6h before there is probably an error of date
