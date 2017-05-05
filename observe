@@ -322,7 +322,10 @@ echo "toto" $myFile
 #  computing waiting time before beginning of run
 #
    let dsec="$debsec"-"$actsec"
-
+#  scan the photometer filters
+   if [ $ival = "ph" ]
+   then bash /usr/local/bin/find_filters.bash
+   fi
    if [ "$dsec" -le 0 ]
    then echo "Observation beginning is passed (dsec=" $dsec ")"
         if [ "$dsec" -le -21600 ]  # if the desired beginning of observation time seems more that 6h before there is probably an error of date
@@ -575,10 +578,6 @@ echo "toto" $myFile
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
       /bin/echo "  Beginning of acquisition (data " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
-#     scan the photometer filters
-      if [ $ival = "ph" ]
-      then bash /usr/local/bin/find_filters.bash
-      fi
 #
       if [ -f /home/sand/public_html/cgi-bin/webcam-mean ]
       then read lumino < /home/sand/public_html/cgi-bin/webcam-mean
