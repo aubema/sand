@@ -216,14 +216,8 @@ do let nl=nl+1
          let count="$count"+5
       done
       /bin/echo "CCD temperature is ok"
+      actsec=`/bin/date +%s`
    fi
-#  scan the photometer filters
-   if [ $ival = "ph" ]
-   then bash /usr/local/bin/find_filters.bash
-   fi
-
-
-   actsec=`/bin/date +%s`
 #
 #  reading longitude and latitude from observation schedule
 #
@@ -324,7 +318,6 @@ echo "toto" $myFile
    fi
    let duration=finsec-debsec
    echo "debug: duration=" $duration "finsec=" $finsec " debsec=" $debsec
-   
 #
 #  computing waiting time before beginning of run
 #
@@ -450,6 +443,7 @@ echo "toto" $myFile
         /bin/chmod a+rx "/home/sand/public_html/data/"$y"/"$mo"/"$j
    fi
    outdir="/home/sand/public_html/data/"$y"/"$mo"/"$j
+   photoname=`/bin/date +%Y-%m-%d`".txt"
    /bin/echo "Output directory: " $outdir
    logname=`/bin/date +%Y-%m-%d`".log"
    /bin/echo "Log file name: " $logname
@@ -582,6 +576,10 @@ echo "toto" $myFile
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
       /bin/echo "  Beginning of acquisition (data " $nimg"/"$nimgtot")  @ "$begin >> /home/sand/public_html/data/$logname
       /bin/echo " ----------------------------------------------" >> /home/sand/public_html/data/$logname
+#     scan the photometer filters
+      if [ $ival = "ph" ]
+      then bash /usr/local/bin/find_filters.bash
+      fi
 #
       if [ -f /home/sand/public_html/cgi-bin/webcam-mean ]
       then read lumino < /home/sand/public_html/cgi-bin/webcam-mean
@@ -601,6 +599,10 @@ echo "toto" $myFile
             /bin/sleep 60
          done
       done
+      /bin/echo "    Azimuth: " $azid " deg " $azim " min" $azis " sec" >> /home/sand/public_html/data/$logname
+      /bin/echo "    Elevation: " $eled " deg " $elem " min" $eles " sec" >> /home/sand/public_html/data/$logname
+      /bin/echo "    Integration time: " $inttime "sec">> /home/sand/public_html/data/$logname
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
 #     take image
       if [ $imtyp = "dark" ]
       then shutter="off"
@@ -610,9 +612,6 @@ echo "toto" $myFile
           /bin/echo "Sky image acquisition"
           /bin/echo "    Sky image acquisition" >> /home/sand/public_html/data/$logname
       fi
-      /bin/echo "    Azimuth: " $azid " deg " $azim " min" $azis " sec" >> /home/sand/public_html/data/$logname
-      /bin/echo "    Elevation: " $eled " deg " $elem " min" $eles " sec" >> /home/sand/public_html/data/$logname
-      /bin/echo "    Integration time: " $inttime "sec">> /home/sand/public_html/data/$logname
 #     get ccd temperature
       ccdt=`/usr/local/bin/night_temperature get -t`
       airt=`/usr/local/bin/night_temperature get -ta`
@@ -621,6 +620,7 @@ echo "toto" $myFile
       /bin/echo "    CCD temperature: " $ccdt "C">> /home/sand/public_html/data/$logname
       /bin/echo "    Temperature setpoint: " $stmp "C">> /home/sand/public_html/data/$logname
       /bin/echo "    CCD cooling power: " $ccdp >> /home/sand/public_html/data/$logname
+fi
       /bin/echo "    Ambient relative luminosity: " $lumino >> /home/sand/public_html/data/$logname
 #
 #     Spectrometer case
@@ -711,7 +711,7 @@ echo "toto" $myFile
       if [ $ival = "ph" ]
 #     12 narrowband filter wheel photometer
       then echo "reading photometer data"
-         bash /usr/local/observe-sqm-servo.bash 
+         bash /usr/local/bin/observe-sqm-servo.bash 
       fi
 #
 #     entry to log file
@@ -734,9 +734,11 @@ echo "toto" $myFile
       fi
       let min="$m"+"$h"*60+"$j"*24*60
       /bin/echo "End of acquisition @ " $end
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
       /bin/echo "Saving file: " $name
       /bin/echo "    File name: " $name >> /home/sand/public_html/data/$logname
       /bin/echo " -----------------------------------------------" >> /home/sand/public_html/data/$logname
+fi
       /bin/echo "  End of acquisition @ " $end >> /home/sand/public_html/data/$logname
       /bin/echo " -----------------------------------------------" >> /home/sand/public_html/data/$logname
       /bin/echo $min > /home/sand/public_html/cgi-bin/last_image.tmp
@@ -744,6 +746,7 @@ echo "toto" $myFile
    /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
    /bin/echo " End of observing run  "  >> /home/sand/public_html/data/$logname
    /bin/echo "======================================================" >> /home/sand/public_html/data/$logname
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
 #
 #  set cooling off
 #
@@ -769,6 +772,7 @@ echo "toto" $myFile
    sleep 60
    echo "Only one min!"
    sleep 60
+fi
    /bin/echo "======================================================" 
    /bin/echo " End of observing run "  
    /bin/echo "======================================================" 
@@ -782,7 +786,7 @@ echo "toto" $myFile
    fi
    /bin/chmod a+rx $outdir"/"$logname
    /bin/mv -f /home/sand/public_html/cgi-bin/*.fits $outdir
-   /bin/mv -f /home/sand/public_html/cgi-bin/photom-* $outdir
+   /bin/mv -f /home/sand/public_html/cgi-bin/photom.txt $outdir"/"$photoname
    /bin/mv -f /home/sand/public_html/cgi-bin/*.phot $outdir
    /bin/rm -f /home/sand/public_html/cgi-bin/skycalc.*
    /bin/rm -f /home/sand/public_html/cgi-bin/toto.bash
