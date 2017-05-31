@@ -311,12 +311,12 @@ do let nl=nl+1
    then let finsec=finsec+86400
    fi
    let duration=finsec-debsec
-   echo "debug: duration=" $duration "finsec=" $finsec " debsec=" $debsec
+   echo "debug:  actsec=" $actsec " duration=" $duration "finsec=" $finsec " debsec=" $debsec
 #
 #  computing waiting time before beginning of run
 #
    let dsec=debsec-actsec
-
+   echo "debug: dsec=" $dsec
    if [ "$dsec" -le 0 ]
    then echo "Observation beginning is passed (dsec=" $dsec ")"
         if [ "$dsec" -le -21600 ]  # if the desired beginning of observation time seems more that 6h before there is probably an error of date
@@ -773,9 +773,10 @@ fi
 if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
    /bin/chmod a+rx /home/sand/public_html/cgi-bin/*.fits 
    /bin/chmod u+w /home/sand/public_html/cgi-bin/*.fits
-fi
    list=`/bin/ls -1 /home/sand/public_html/cgi-bin/*.fits`
    /bin/echo "liste des images prises" $list
+fi
+
    if [ -f $outdir"/"$logname ]
    then /bin/cat /home/sand/public_html/data/$logname >> $outdir"/"$logname
    else /bin/cat /home/sand/public_html/data/$logname > $outdir"/"$logname
