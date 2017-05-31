@@ -137,11 +137,6 @@ echo "   mount mode =" $mval " (off = mount off, on = mount on)"
 echo "   instrument =" $ival " (sp = spectrometer, ra = 5 filters wheel radiometer, ph = 12 filter wheel photometer)"
 echo "   begin night at" $aval "+ " $dval" min (sun = sunset, ast = astronomical twilight, H:M = other time)" 
 echo "   Number of nights =" $lval " (0 = infinity)"
-# setting mount acceleration to minimal value
-if [ $mountmodel = "PT785S+Pololu" ]
-then mono /usr/local/bin/UscCmd --accel 0,1
-     mono /usr/local/bin/UscCmd --accel 1,1
-fi
 # checking if there is an instance of observe already running
 ninstance=`ps -A | grep -c observe`
 let ninstance=ninstance-1
@@ -221,7 +216,6 @@ do let nl=nl+1
 #
 #  reading longitude and latitude from observation schedule
 #
-echo "toto" $myFile
    if [ `grep -c " " /home/sand/public_html/cgi-bin/$myFile` -ne 0 ]
    then /bin/grep Longitude /home/sand/localconfig > /home/sand/public_html/cgi-bin/ligne.tmp
         read bidon DD MM SS bidon < /home/sand/public_html/cgi-bin/ligne.tmp
@@ -321,14 +315,14 @@ echo "toto" $myFile
 #
 #  computing waiting time before beginning of run
 #
-   let dsec="$debsec"-"$actsec"
+   let dsec=debsec-actsec
 
    if [ "$dsec" -le 0 ]
    then echo "Observation beginning is passed (dsec=" $dsec ")"
         if [ "$dsec" -le -21600 ]  # if the desired beginning of observation time seems more that 6h before there is probably an error of date
         then echo "Observation beginning is more than 6h into past (dsec=" $dsec ")"
              echo "It is probably beginning tomorrow! So adding 1 day."
-             let dsec=86400+"$dsec"
+             let dsec=86400+dsec
              echo "Corrected dsec value=" $dsec
         else                       # we assume in that case that the run have been started a bit after the desired beginning of observation time
              let duration=duration+dsec
@@ -776,8 +770,10 @@ fi
    /bin/echo "======================================================" 
    /bin/echo " End of observing run "  
    /bin/echo "======================================================" 
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
    /bin/chmod a+rx /home/sand/public_html/cgi-bin/*.fits 
    /bin/chmod u+w /home/sand/public_html/cgi-bin/*.fits
+fi
    list=`/bin/ls -1 /home/sand/public_html/cgi-bin/*.fits`
    /bin/echo "liste des images prises" $list
    if [ -f $outdir"/"$logname ]
@@ -785,9 +781,11 @@ fi
    else /bin/cat /home/sand/public_html/data/$logname > $outdir"/"$logname
    fi
    /bin/chmod a+rx $outdir"/"$logname
+if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
    /bin/mv -f /home/sand/public_html/cgi-bin/*.fits $outdir
-   /bin/mv -f /home/sand/public_html/cgi-bin/photom.txt $outdir"/"$photoname
    /bin/mv -f /home/sand/public_html/cgi-bin/*.phot $outdir
+fi
+   /bin/mv -f /home/sand/public_html/cgi-bin/photom.txt $outdir"/"$photoname
    /bin/rm -f /home/sand/public_html/cgi-bin/skycalc.*
    /bin/rm -f /home/sand/public_html/cgi-bin/toto.bash
    /bin/rm -f /home/sand/public_html/cgi-bin/ligne.tmp
