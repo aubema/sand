@@ -211,7 +211,6 @@ do let nl=nl+1
          let count="$count"+5
       done
       /bin/echo "CCD temperature is ok"
-      actsec=`/bin/date +%s`
    fi
 #
 #  reading longitude and latitude from observation schedule
@@ -298,6 +297,7 @@ do let nl=nl+1
    tm=$min
    th=$hour
    ts=0
+   actsec=`/bin/date +%s`
    /bin/echo "/bin/date --date='"$ty-$tmo-$tj $th:$tm:$ts"' +%s" > /home/sand/public_html/cgi-bin/toto.bash
    debsec=`/bin/bash /home/sand/public_html/cgi-bin/toto.bash`
    tm=$fmin
