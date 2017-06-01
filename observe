@@ -333,6 +333,10 @@ do let nl=nl+1
         fi
    elif [ "$dsec" -gt 43200 ]
    then /bin/echo "Observing too far in time (>12h)!"
+        if [ "$dsec" -gt 86400 ]
+        then /bin/echo "Observing in more than 24h from now! Please start is tomorrow."
+             exit 0
+        fi
 #
 #  for the case that the run is started just a couple hours after the beginning of twilight
 #
