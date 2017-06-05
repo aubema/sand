@@ -215,7 +215,23 @@ do let nl=nl+1
       /bin/echo "CCD temperature is ok"
    elif [ $ival = "ph" ]
 #  scan the photometer filters
-   then bash /usr/local/bin/find_filters.bash
+   then nff=0
+            while  [ $nff -lt  3 ]
+            do read g1 o1 bidon < $homed/filtersconfig
+                bash /usr/local/bin/find_filters.bash
+                read g2 o2 bidon < $homed/filtersconfig
+                let dg1=g2-g1
+                if [ $dg1 -lt 0 ] ; then  let dg1=-1*dg1 ; fi
+                let do1=o2-o1
+                if [ $do1 -lt 0 ] ; then  let do1=-1*do1 ; fi
+                if [ $dg1 -le 2 ] && [ $do1 -le 20 ]; then
+                   let gainff=(g1+g2)/2
+                   let offsetff=(o1+o2)/2
+                   echo $gainff $offsetff > $homed/filtersconfig
+                   echo $gainff $offsetff
+                   let nff=nff+1
+                fi
+            done 
    fi
 #
 #  reading longitude and latitude from observation schedule

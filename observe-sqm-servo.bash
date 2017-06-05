@@ -40,7 +40,7 @@ if [ ! -f $homed/filtersconfig ]
    then echo "Error: File $homed/filtersconfig not found"
         exit 0
 fi
-
+echo "Start observe-sqm-servo.bash"
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
 # 21.97 = 6.9s
@@ -59,7 +59,7 @@ fi
 ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
 
 # moving filter wheel to filter 1
-echo "deplacement de la roue" $channel $ang
+# echo "deplacement de la roue" $channel $ang
 let park=offset
 /usr/local/bin/MoveFilterWheel.py $ang $channel $park
 echo "Waiting " $waittime " s to estimate acquisition time"
@@ -73,25 +73,25 @@ echo $tim | sed 's/\./ /g'  > toto.tmp
 read tim timd toto < toto.tmp
 echo $tim | sed 's/000//g'  > toto.tmp
 read tim toto < toto.tmp
-echo $tim $timd
+# echo $tim $timd
 if [ $timd -ge 500 ]
 then let tim=tim+1
 fi
 let waittime=tim
 if [ $waittime == 0 ]
    then waittime=1
-   echo "toto" $waittime
+ #  echo "toto" $waittime
 else
    let waittime=waittime*3
 fi
 #angle=( $( cat $homed/filters_pos.txt ) )
-echo "Acquistion time:" $waittime
+# echo "Acquistion time:" $waittime
 i=0
 while [ $i -lt $nobs ]
 do n=0
-   echo "Start"
+#   echo "Start"
    let i=i+1
-   echo "observation numéro: " $i
+ #  echo "observation numero: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
       if [ $filter -le 6 ]
@@ -99,27 +99,27 @@ do n=0
       else
            let park=offset
       fi
-      echo "Waiting time:" $waittime
+ #     echo "Waiting time:" $waittime
 
 ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
 #      ang=${angle[$n]}
 
 
 # moving filter wheel
-      echo "deplacement de la roue" $channel $ang
+ #     echo "deplacement de la roue" $channel $ang
       /usr/local/bin/MoveFilterWheel.py $ang $channel $park      
-      echo "reading sqm, "  "Filtre: "  $(($n+1))
+#      echo "reading sqm, "  "Filtre: "  $(($n+1))
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
 
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
-      echo "end of reading"      
+ #     echo "end of reading"      
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read toto sb toto < toto.tmp
-      echo $sb
+ #     echo $sb
       sbcal[$n]=`/bin/echo "e((-1*"$sb"/2.5000000)*l(10))*"${calib[$n]} |/usr/bin/bc -l`
       sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
-      echo ${sbcals[$n]}
+ #     echo ${sbcals[$n]}
       let n=n+1
    done
 nomfich=`date -u +"%m-%d-%y"`
@@ -129,4 +129,4 @@ echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sb
 /bin/sleep $waittime
    
 done
-echo "Finish"
+echo "Finish observe-sqm-servo.bash"

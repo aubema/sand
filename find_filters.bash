@@ -24,7 +24,7 @@
 # home directory
 homed=$HOME
 
-echo "Start scnanning filters"
+echo "Start scanning filters"
 
 rm -f $homed/filters_pos.txt
 grep filter_channel $homed/localconfig > toto
@@ -66,13 +66,13 @@ do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
    read sb toto < toto.tmp
   
 
-   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
+#  echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
   
-   echo "______________________________________________________________________________________"
+#   echo "______________________________________________________________________________________"
 
    if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd ]]
    then echo $scanpointp >> $homed/filters_pos.txt
-        echo "filtre # " $n ; echo "pos " $scanpointp
+ #       echo "filtre # " $n ; echo "pos " $scanpointp
         let n=n+1
                  if [[ $n -eq 1 ]]     
                      then let scanpoint=maxpoint-400
@@ -86,23 +86,18 @@ do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
    let pointav=sb
    let scanpointp=scanpoint
    let scanpoint=scanpoint+20
-   if [ $ntentative -ge 1 ]
-   then /bin/echo "Probably a bad connection with the filter wheel"
+   if [ $ntentative -ge 50 ]
+   then /bin/echo "find_filters: Probably a bad connection with the filter wheel"
         exit 0
    fi
 done
 
-echo "Scnanning filters finished"
+echo "Scanning filters finished"
 
 offset=`head -1 $homed/filters_pos.txt`
 posf=`tail -1 $homed/filters_pos.txt`
 gain=`/bin/echo "scale=0;("$posf"-"$offset")/12" |/usr/bin/bc -l`
 echo $gain $offset > $homed/filtersconfig
-
-
-
-echo " O O "
-echo "  U "
 
 #bash find_filters.bash
 

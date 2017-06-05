@@ -39,7 +39,7 @@ $remote = IO::Socket::INET->new(PeerAddr => $sqm_le_addr,
   || die("Cannot connect to port $sqm_le_port on $sqm_le_addr:$!");
 
 $remote->autoflush(1);
-print STDERR "[Connected to $sqm_le_addr:$sqm_le_port]\n";
+# print STDERR "[Connected to $sqm_le_addr:$sqm_le_port]\n";
 
 for $count (1..$n_readings) {
 
