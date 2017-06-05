@@ -24,7 +24,9 @@
 #
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
-chmod -R u+rwx /home/sand/public_html/cgi-bin
+# home directory
+homed=$HOME
+chmod -R u+rwx $homed/public_html/cgi-bin
 # conversion de la longitude en deg vers heures
 #  Strip possible leading zero(s) from argument passed
 echo ${#1} ${#2}
@@ -43,29 +45,29 @@ let seclon="$deglon"/"$hourdeg"
 let hrlon="$seclon"/3600
 let mnlon=("$seclon"-"$hrlon"*3600)/60
 let sclon="$seclon"-"$hrlon"*3600-"$mnlon"*60
-/bin/echo "n" > /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo $hrlon $mnlon $sclon>> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo $4 $5 $6 >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo $7 >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "-" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "-" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "0" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "g " >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo " a" >> /home/sand/public_html/cgi-bin/skycalc.in
-/bin/echo "Q" >> /home/sand/public_html/cgi-bin/skycalc.in
-/usr/local/bin/skycalc < /home/sand/public_html/cgi-bin/skycalc.in  > /home/sand/public_html/cgi-bin/skycalc.out
-/bin/cat /home/sand/public_html/cgi-bin/skycalc.out | /bin/sed 's/-ST/UTC/g' | /bin/sed 's/ing twilight/ing astronomical twilight/g' | /bin/sed 's/; /\n/g' | /bin/sed 's/local time/UTC/g' > /home/sand/public_html/cgi-bin/ephems.out
+/bin/echo "n" > $homed/public_html/cgi-bin/skycalc.in
+/bin/echo $hrlon $mnlon $sclon>> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo $4 $5 $6 >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo $7 >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "-" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "-" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "0" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "g " >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo " a" >> $homed/public_html/cgi-bin/skycalc.in
+/bin/echo "Q" >> $homed/public_html/cgi-bin/skycalc.in
+/usr/local/bin/skycalc < $homed/public_html/cgi-bin/skycalc.in  > $homed/public_html/cgi-bin/skycalc.out
+/bin/cat $homed/public_html/cgi-bin/skycalc.out | /bin/sed 's/-ST/UTC/g' | /bin/sed 's/ing twilight/ing astronomical twilight/g' | /bin/sed 's/; /\n/g' | /bin/sed 's/local time/UTC/g' > $homed/public_html/cgi-bin/ephems.out
 /bin/echo "Ephemerides for " $7
 /bin/echo "Longitude:" $1 "deg." $2 "min." $3 "sec."
 /bin/echo "Latitude:" $4 "deg." $5 "min." $6 "sec."
-/bin/grep Sun /home/sand/public_html/cgi-bin/ephems.out
-/bin/grep Evening /home/sand/public_html/cgi-bin/ephems.out
-/bin/grep Morning /home/sand/public_html/cgi-bin/ephems.out
-/bin/grep 12-degr /home/sand/public_html/cgi-bin/ephems.out
-/bin/grep Moon /home/sand/public_html/cgi-bin/ephems.out
-/bin/grep dark /home/sand/public_html/cgi-bin/ephems.out
+/bin/grep Sun $homed/public_html/cgi-bin/ephems.out
+/bin/grep Evening $homed/public_html/cgi-bin/ephems.out
+/bin/grep Morning $homed/public_html/cgi-bin/ephems.out
+/bin/grep 12-degr $homed/public_html/cgi-bin/ephems.out
+/bin/grep Moon $homed/public_html/cgi-bin/ephems.out
+/bin/grep dark $homed/public_html/cgi-bin/ephems.out
 
 

@@ -18,6 +18,10 @@
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
 # 
+
+# home directory
+homed=$HOME
+
 nobs=1
 waittime=10             # at a mag of about 24 the integration time is around 60s
 #
@@ -26,14 +30,14 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 # possibilite d'ajouter un filtre a 480 ulterieurement (creu DEL)
 filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
 calib=( 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 )
-grep filter_channel /home/sand/localconfig > toto
+grep filter_channel $homed/localconfig > toto
 read bidon channel bidon < toto
-read gain offset  bidon < /home/sand/filtersconfig
-grep sqmIP /home/sand/localconfig > toto
+read gain offset  bidon < $homed/filtersconfig
+grep sqmIP $homed/localconfig > toto
 read bidon sqmip bidon < toto
 
-if [ ! -f /home/sand/filtersconfig ]
-   then echo "Error: File /home/sand/filtersconfig not found"
+if [ ! -f $homed/filtersconfig ]
+   then echo "Error: File $homed/filtersconfig not found"
         exit 0
 fi
 
@@ -80,7 +84,7 @@ if [ $waittime == 0 ]
 else
    let waittime=waittime*3
 fi
-#angle=( $( cat /home/sand/filters_pos.txt ) )
+#angle=( $( cat $homed/filters_pos.txt ) )
 echo "Acquistion time:" $waittime
 i=0
 while [ $i -lt $nobs ]
@@ -121,7 +125,7 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
 nomfich=`date -u +"%m-%d-%y"`
 
 time=`date -u`
-echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> /home/sand/public_html/cgi-bin/photom.txt
+echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> $homed/public_html/cgi-bin/photom.txt
 /bin/sleep $waittime
    
 done

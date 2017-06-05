@@ -21,18 +21,19 @@
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
  
-
+# home directory
+homed=$HOME
 
 echo "Start scnanning filters"
 
-rm -f /home/sand/filters_pos.txt
-grep filter_channel /home/sand/localconfig > toto
+rm -f $homed/filters_pos.txt
+grep filter_channel $homed/localconfig > toto
 read bidon channel bidon < toto
-grep filter_offset /home/sand/localconfig > toto
+grep filter_offset $homed/localconfig > toto
 read bidon offset bidon < toto
-grep sqmIP /home/sand/localconfig > toto
+grep sqmIP $homed/localconfig > toto
 read bidon sqmip bidon < toto
-grep filter_gain /home/sand/localconfig > toto
+grep filter_gain $homed/localconfig > toto
 read bidon gain  bidon < toto
 
 #Variables
@@ -52,49 +53,51 @@ sleep 3
 
 #scaning_filters
 
-
+ntentative=0
 while [ $scanpoint -le $maxpoint ]
+do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
+   let ntentative=ntentative+1
+   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
+   read sqm < sqmdata.tmp
+   echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
+   read toto sb toto toto toto toto < toto.tmp
 
-    do /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
-     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp      
+   echo $sb | sed 's/\.//g' > toto.tmp
+   read sb toto < toto.tmp
   
-  read sqm < sqmdata.tmp
-  echo $sqm | sed 's/, 0/ /g' | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-  read toto sb toto toto toto toto < toto.tmp
 
-  echo $sb | sed 's/\.//g' > toto.tmp
-  read sb toto < toto.tmp
+   echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
   
+   echo "______________________________________________________________________________________"
 
-  echo "finding filtre #: "$n       "pos: "$scanpoint       "magnitude: "$sb"m"
-  
-  echo "______________________________________________________________________________________"
-
-  if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd ]]
-  then echo $scanpointp >> /home/sand/filters_pos.txt
-     echo "filtre # " $n ; echo "pos " $scanpointp
-     let n=n+1
+   if [[ $sb -gt $pointav && $pointav -le $pointavd && $pointavd -le $pointaavd && $pointaavd -le $pointaaavd ]]
+   then echo $scanpointp >> $homed/filters_pos.txt
+        echo "filtre # " $n ; echo "pos " $scanpointp
+        let n=n+1
                  if [[ $n -eq 1 ]]     
                      then let scanpoint=maxpoint-400
                            /usr/local/bin/MoveFilterWheel.py $scanpoint $channel $park
                  fi
-  fi
+   fi
 
-  let pointaaavd=pointaavd
-  let pointaavd=pointavd
-  let pointavd=pointav
-  let pointav=sb
-  let scanpointp=scanpoint
-  let scanpoint=scanpoint+20
-
+   let pointaaavd=pointaavd
+   let pointaavd=pointavd
+   let pointavd=pointav
+   let pointav=sb
+   let scanpointp=scanpoint
+   let scanpoint=scanpoint+20
+   if [ $ntentative -ge 1 ]
+   then /bin/echo "Probably a bad connection with the filter wheel"
+        exit 0
+   fi
 done
 
 echo "Scnanning filters finished"
 
-offset=`head -1 /home/sand/filters_pos.txt`
-posf=`tail -1 /home/sand/filters_pos.txt`
+offset=`head -1 $homed/filters_pos.txt`
+posf=`tail -1 $homed/filters_pos.txt`
 gain=`/bin/echo "scale=0;("$posf"-"$offset")/12" |/usr/bin/bc -l`
-echo $gain $offset > /home/sand/filtersconfig
+echo $gain $offset > $homed/filtersconfig
 
 
 
