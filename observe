@@ -133,6 +133,25 @@ do
     ;;
   esac
 done
+# min delay on startup = 30 min in the case of sunset to allow the time for cooling and scan filters during twilight
+if [ $aval == "sun" ]
+then if [ $dval -lt 30 ]
+     then let dval=30
+          echo "Setting delay to ist minimum value in sunset mode (30 min)"
+     fi
+fi
+
+
+
+
+
+
+
+
+
+
+
+
 shift $(($OPTIND - 1))
 echo "Starting observation with:"
 echo "   mount mode =" $mval " (off = mount off, on = mount on)"
@@ -171,6 +190,118 @@ do let nl=nl+1
 #  Neverending loop if lval=0
 #
    fi
+#
+#  searching for gps port
+#
+   if [ $gpsf -eq 1 ] 
+   then echo "GPS mode activated"
+        if [ `ls /dev | grep ttyUSB0`  ] 
+        then echo "GPS look present." 
+#
+#            reading 10 gps transactions
+#
+             /bin/echo "Waiting 5 sec for GPS reading..."
+             /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
+             /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp > $homed/public_html/cgi-bin/bidon.tmp
+             /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
+             read bidon bidon bidon lat lon altitude bidon1 < $homed/public_html/cgi-bin/bidon.tmp
+             if [ "${bidon1:0:1}" != "" ]
+             then /bin/echo "GPS is connected, reading lat lon data."
+                  lon=`/bin/echo $lon"/-1" |/bin/bc -l`
+                  DD=`/bin/echo "scale=0;"$lon"/1" |/usr/bin/bc -l`
+                  dd=`/bin/echo "scale=0;"$lat"/1" |/usr/bin/bc -l`
+                  MMM=`/bin/echo "("$lon"-"$DD")*60" |/usr/bin/bc -l`
+                  MM=${MMM:0:2}
+                  mmm=`/bin/echo "("$lat"-"$dd")*60" |/usr/bin/bc -l`
+                  mm=${mmm:0:2}
+                  SSS=`/bin/echo "(("$lon"-"$DD")-"$MM"/60)*3600" |/usr/bin/bc -l`
+                  SS=${SSS:0:2}
+                  sss=`/bin/echo "(("$lat"-"$dd")-"$mm"/60)*3600" |/usr/bin/bc -l`
+                  ss=${sss:0:2}
+                  /bin/echo "GPS give Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS "and Altitude:" $altitude
+             else /bin/echo "GPS not working: using coords. from localconfig"
+                  /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+             fi    
+        else /bin/echo "GPS not present: using coords. from localconfig"
+             /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+        fi
+   else  echo "GPS mode off"
+   fi
+   /bin/grep "Site_name" $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+   read bidon NAME bidon < $homed/public_html/cgi-bin/ligne.tmp
+#
+#  computing ephemerides
+#
+   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME
+   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME > $homed/public_html/cgi-bin/last_ephemerides
+   if [ $aval = "ast" ]
+   then /bin/grep "Evening astronomical twilight" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon  hour min bidon < $homed/public_html/cgi-bin/toto.tmp
+        /bin/grep  "Morning astronomical twilight" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon  fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
+   elif [ $aval = "sun" ]
+   then /bin/grep "Sunset" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+        read bidon bidon bidon bidon bidon hour min bidon < $homed/public_html/cgi-bin/toto.tmp
+        /bin/grep  "Sunrise" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+        read bidon fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
+   else
+        echo $aval | sed 's/:/ /g' > $homed/public_html/cgi-bin/toto.tmp
+        read hour min < $homed/public_html/cgi-bin/toto.tmp  
+        /bin/grep  "Sunrise" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+        read bidon fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
+   fi
+   /bin/rm -f $homed/public_html/cgi-bin/toto.tmp
+#  finding time of sunset
+   /bin/grep "Sunset" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
+   read bidon bidon bidon bidon bidon sshour ssmin bidon < $homed/public_html/cgi-bin/toto.tmp
+   ty=`/bin/date +%Y`
+   tmo=`/bin/date +%m`
+   tj=`/bin/date +%d`
+   tm=$ssmin
+   th=$sshour
+   ts=0
+   actsec=`/bin/date +%s`
+   actdate=`/bin/date`
+   /bin/echo "/bin/date --date='"$ty-$tmo-$tj $th:$tm:$ts"' +%s" > $homed/public_html/cgi-bin/toto.bash
+   sunset=`/bin/bash $homed/public_html/cgi-bin/toto.bash`
+#  adding 10min to sunset
+   let sunset=sunset+600
+#  waiting until 10 min after sunset
+
+   if [ $sunset -lt $actsec ]
+#  meaning that sunset is after midnight while we are before midnight
+#  adding 24h to sunset as a first approximation
+   then let sunset=sunset+86400
+   fi
+   let dsec=sunset-actsec
+
+   if [ "$dsec" -lt 0 ]
+   then /bin/echo "Sunset is in the past (dsec=" $dsec ")"
+        /bin/echo "Exiting observe"
+        exit 0
+   fi
+   if [ "$dsec" -gt 43200 ]
+   then /bin/echo "Sunset far in time (>12h)!"
+        if [ "$dsec" -gt 86400 ]
+        then /bin/echo "Sunset in more than 24h from now! Please start is tomorrow."
+             /bin/echo "Exiting observe"
+             exit 0
+        fi
+   fi
+#
+#  Wait for beginning of observation sequence
+#
+   let sleeprem=dsec
+   while  [ $sleeprem -gt  0 ]
+   do let sleephr=sleeprem/60/60
+      let sleepmin=(sleeprem-sleephr*60*60)/60
+      /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m ) until 10 min after sunset"
+      let sleeprem=sleeprem-60
+      /bin/sleep 60
+   done
+#
+#  case with ccd cameras
+#
    if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
       airt=`/usr/local/bin/night_temperature get -t`
 #
@@ -217,7 +348,7 @@ do let nl=nl+1
 #  scan the photometer filters
    then nff=0
             while  [ $nff -ne  3 ]
-            do read g1 o1 bidon < $homed/filtersconfig
+            do  read g1 o1 bidon < $homed/filtersconfig
                 bash /usr/local/bin/find_filters.bash
                 read g2 o2 bidon < $homed/filtersconfig
                 let dg1=g2-g1
@@ -249,70 +380,11 @@ do let nl=nl+1
         fi
         exit 1
    fi
-#
-#  searching for gps port
-#
-   if [ $gpsf -eq 1 ] 
-   then echo "GPS mode activated"
-        if [ `ls /dev | grep ttyUSB0`  ] 
-        then echo "GPS look present." 
-#
-#            reading 10 gps transactions
-#
-             /bin/echo "Waiting 5 sec for GPS reading..."
-             /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
-             /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp > $homed/public_html/cgi-bin/bidon.tmp
-             /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
-             read bidon bidon bidon lat lon altitude bidon1 < $homed/public_html/cgi-bin/bidon.tmp
-             if [ "${bidon1:0:1}" != "" ]
-             then /bin/echo "GPS is connected, reading lat lon data."
-                  lon=`/bin/echo $lon"/-1" |/bin/bc -l`
-                  DD=`/bin/echo "scale=0;"$lon"/1" |/usr/bin/bc -l`
-                  dd=`/bin/echo "scale=0;"$lat"/1" |/usr/bin/bc -l`
-                  MMM=`/bin/echo "("$lon"-"$DD")*60" |/usr/bin/bc -l`
-                  MM=${MMM:0:2}
-                  mmm=`/bin/echo "("$lat"-"$dd")*60" |/usr/bin/bc -l`
-                  mm=${mmm:0:2}
-                  SSS=`/bin/echo "(("$lon"-"$DD")-"$MM"/60)*3600" |/usr/bin/bc -l`
-                  SS=${SSS:0:2}
-                  sss=`/bin/echo "(("$lat"-"$dd")-"$mm"/60)*3600" |/usr/bin/bc -l`
-                  ss=${sss:0:2}
-                  /bin/echo "GPS give Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS "and Altitude:" $altitude
-             else /bin/echo "GPS not working: using coords. from localconfig"
-                  /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
-             fi    
-        else /bin/echo "GPS not present: using coords. from localconfig"
-             /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
-        fi
-   else  echo "GPS mode off"
-   fi
-   /bin/grep "Site_name" $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-   read bidon NAME bidon < $homed/public_html/cgi-bin/ligne.tmp
-#
-#  computing ephemerides
-#
-   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME
-   /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME > $homed/public_html/cgi-bin/last_ephemerides
+
 #
 #  setting beginning time and duration of the night
 #
-   if [ $aval = "ast" ]
-   then /bin/grep "Evening astronomical twilight" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
-        read bidon bidon bidon  hour min bidon < $homed/public_html/cgi-bin/toto.tmp
-        /bin/grep  "Morning astronomical twilight" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
-        read bidon bidon bidon  fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
-   elif [ $aval = "sun" ]
-   then /bin/grep "Sunset" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
-        read bidon bidon bidon bidon bidon hour min bidon < $homed/public_html/cgi-bin/toto.tmp
-        /bin/grep  "Sunrise" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
-        read bidon fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
-   else
-        echo $aval | sed 's/:/ /g' > $homed/public_html/cgi-bin/toto.tmp
-        read hour min < $homed/public_html/cgi-bin/toto.tmp  
-        /bin/grep  "Sunrise" $homed/public_html/cgi-bin/last_ephemerides > $homed/public_html/cgi-bin/toto.tmp
-        read bidon fhour fmin bidon < $homed/public_html/cgi-bin/toto.tmp
-   fi
-   /bin/rm -f $homed/public_html/cgi-bin/toto.tmp
+
    ty=`/bin/date +%Y`
    tmo=`/bin/date +%m`
    tj=`/bin/date +%d`

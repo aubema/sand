@@ -124,7 +124,7 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
    done
 nomfich=`date -u +"%m-%d-%y"`
 
-time=`date -u`
+time=`date +%Y-%m-%d" "%H:%M:%S`
 echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> $homed/public_html/cgi-bin/photom.txt
 /bin/sleep $waittime
    
