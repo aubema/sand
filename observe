@@ -230,6 +230,22 @@ do let nl=nl+1
    /bin/grep "Site_name" $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
    read bidon NAME bidon < $homed/public_html/cgi-bin/ligne.tmp
 #
+#  reading longitude and latitude from observation schedule
+#
+   if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
+   then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+        read bidon DD MM SS bidon < $homed/public_html/cgi-bin/ligne.tmp
+        /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+        read bidon dd mm ss bidon < $homed/public_html/cgi-bin/ligne.tmp
+   else 
+        echo "Please put something in $homed/public_html/cgi-bin/observation_list and restart observe."
+        if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
+           /usr/local/bin/night_temperature set -off
+        fi
+        exit 1
+   fi
+
+#
 #  computing ephemerides
 #
    /usr/local/bin/ephems $DD $MM $SS $dd $mm $ss $NAME
@@ -364,21 +380,6 @@ do let nl=nl+1
                    let nff=nff+1
                 fi
             done 
-   fi
-#
-#  reading longitude and latitude from observation schedule
-#
-   if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
-   then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-        read bidon DD MM SS bidon < $homed/public_html/cgi-bin/ligne.tmp
-        /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-        read bidon dd mm ss bidon < $homed/public_html/cgi-bin/ligne.tmp
-   else 
-        echo "Please put something in $homed/public_html/cgi-bin/observation_list and restart observe."
-        if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
-           /usr/local/bin/night_temperature set -off
-        fi
-        exit 1
    fi
 
 #
