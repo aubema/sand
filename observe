@@ -310,7 +310,7 @@ do let nl=nl+1
    while  [ $sleeprem -gt  0 ]
    do let sleephr=sleeprem/60/60
       let sleepmin=(sleeprem-sleephr*60*60)/60
-      /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m ) until 10 min after sunset"
+      /bin/echo "Sleeping for " $sleeprem " sec (" $sleephr "h " $sleepmin "m ) until 5 min after sunset"
       let sleeprem=sleeprem-60
       /bin/sleep 60
    done
