@@ -135,9 +135,9 @@ do
 done
 # min delay on startup = 30 min in the case of sunset to allow the time for cooling and scan filters during twilight
 if [ $aval == "sun" ]
-then if [ $dval -lt 30 ]
-     then let dval=30
-          echo "Setting delay to ist minimum value in sunset mode (30 min)"
+then if [ $dval -lt 45 ]
+     then let dval=40
+          echo "Setting delay to ist minimum value in sunset mode (45 min)"
      fi
 fi
 
@@ -280,10 +280,9 @@ do let nl=nl+1
    actdate=`/bin/date`
    /bin/echo "/bin/date --date='"$ty-$tmo-$tj $th:$tm:$ts"' +%s" > $homed/public_html/cgi-bin/toto.bash
    sunset=`/bin/bash $homed/public_html/cgi-bin/toto.bash`
-#  adding 10min to sunset
-   let sunset=sunset+600
-#  waiting until 10 min after sunset
-
+#  adding 5 min to sunset
+   let sunset=sunset+300
+#  waiting until 5 min after sunset
    if [ $sunset -lt $actsec ]
 #  meaning that sunset is after midnight while we are before midnight
 #  adding 24h to sunset as a first approximation
