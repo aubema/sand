@@ -408,21 +408,22 @@ do let nl=nl+1
 #  adding 24h to finsec as a first approximation
    then let finsec=finsec+86400
    fi
-   if [ $debsec -lt $actsec ]
-#  meaning that debsec is after midnight while we are before midnight
+   let dsec=debsec-actsec
+   if [ $debsec -lt $actsec ] && [ $dsec -lt -43200 ]
+#  can be that debsec is after midnight while we are before midnight
 #  adding 24h to debsec as a first approximation
    then let debsec=debsec+86400
+   else
+#     meaning that the night has already begun then start immediately
+#     i.e. setting debsec to actsec
+      let debsec=actsec
+      /bin/echo "Observing date should be in the future!"
+      /bin/echo "Starting run almost immediately"
    fi
    if [ $finsec -lt $debsec ]
    then let debsec=debsec-86400
    fi
    if [ $actsec -gt $debsec ]
-#  meaning that the night has already begun then start immediately
-#  i.e. setting debsec to actsec
-   then let debsec=actsec
-        /bin/echo "Observing date should be in the future!"
-        /bin/echo "Starting run almost immediately"
-   fi
    let duration=finsec-debsec
    echo "debug:  actsec=" $actsec " duration=" $duration "finsec=" $finsec " debsec=" $debsec
 #
