@@ -296,12 +296,13 @@ do let nl=nl+1
         exit 0
    fi
    if [ "$dsec" -gt 43200 ]
-   then /bin/echo "Sunset far in time (>12h)!"
+   then /bin/echo "Sunset far in time (>12h)! Cannot perform the filter scan at sunset, trying to do it right now. "
         if [ "$dsec" -gt 86400 ]
-        then /bin/echo "Sunset in more than 24h from now! Please start is tomorrow."
+        then /bin/echo "Sunset in more than 24h from now! Please start it tomorrow."
              /bin/echo "Exiting observe"
              exit 0
         fi
+        let dsec=0
    fi
 #
 #  Wait for beginning of observation sequence
@@ -423,7 +424,6 @@ do let nl=nl+1
    if [ $finsec -lt $debsec ]
    then let debsec=debsec-86400
    fi
-   if [ $actsec -gt $debsec ]
    let duration=finsec-debsec
    echo "debug:  actsec=" $actsec " duration=" $duration "finsec=" $finsec " debsec=" $debsec
 #
