@@ -27,7 +27,7 @@ fi
 # number of points to fit
 npts=4
 #
-outname=$1"analysed"
+outname=$1"_analysed"
 gplotfile="gplot.tmp"
 # determine the number of lines of the photometer file
 nlines=`grep -c "" $1`
