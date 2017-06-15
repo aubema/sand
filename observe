@@ -919,7 +919,13 @@ fi
 #
    if [ $ival = "sp" ] 
    then if [ "$lval" != "1" ]
-        then /usr/local/bin/nathalie > $outdir/analysis.log &
+        then /usr/local/bin/nathalie  > $outdir/analysis.log &
+        fi
+   fi
+   if [ $ival = "ph" ] 
+   then if [ "$lval" != "1" ]
+        then cd $outdir
+             /usr/local/bin/photom2spectrum.bash $photoname  > $outdir/analysis.log &
         fi
    fi
 #
