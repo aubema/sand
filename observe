@@ -925,7 +925,7 @@ fi
    if [ $ival = "ph" ] 
    then if [ "$lval" != "1" ]
         then cd $outdir
-             /usr/local/bin/photom2spectrum.bash $photoname  > $outdir/analysis.log &
+             /usr/local/bin/photom2spectrum.bash $outdir/$photoname  > $outdir/analysis.log &
         fi
    fi
 #
