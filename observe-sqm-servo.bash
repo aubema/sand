@@ -114,6 +114,9 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
  #     echo "end of reading"      
       read sqm < sqmdata.tmp
+      if [ $n -eq 0 ]
+      then let sqmreading=sqm
+      fi
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read toto sb toto < toto.tmp
  #     echo $sb
@@ -125,7 +128,7 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
 nomfich=`date -u +"%m-%d-%y"`
 
 time=`date +%Y-%m-%d" "%H:%M:%S`
-echo $time ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> $homed/public_html/cgi-bin/photom.txt
+echo $time $sqmreading ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> $homed/public_html/cgi-bin/photom.txt
 /bin/sleep $waittime
    
 done

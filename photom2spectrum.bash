@@ -35,15 +35,14 @@ npts=4
 nl=0
 gapl=8
 gapr=9
-echo "Date       Time      Rad_Hg_405 Rad_Hg_436  Rad_Na_498  Rad_Hg_546  Rad_OI_557  Rad_Na_569  Rad_OI_630  Rad_error      Stars_polynomial" > $outname
+echo "Date       Time      SQM   Rad_Hg_405 Rad_Hg_436  Rad_Na_498  Rad_Hg_546  Rad_OI_557  Rad_Na_569  Rad_OI_630  Rad_error      Stars_polynomial" > $outname
 while [ $nl -le $nlines ]
 do let nl=nl+1
    cat $1 | head -$nl | tail -1 > dataline.tmp
 #  wavelengths 0:= vide ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= 405 ,12:= vide
-   read dat tim b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 < dataline.tmp
+   read dat tim sqm b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 < dataline.tmp
 echo $dat $tim $b1
 #  transforming the integrated band flux in radiance per nanometer
-   b0=`echo  $b1 | sed -e 's/e+/\*10\^/g' | sed -e 's/e-/\*10\^-/g'`
    b1=`echo  $b1 | sed -e 's/e+/\*10\^/g' | sed -e 's/e-/\*10\^-/g'`
    b2=`echo  $b2 | sed -e 's/e+/\*10\^/g' | sed -e 's/e-/\*10\^-/g'`
    b3=`echo  $b3 | sed -e 's/e+/\*10\^/g' | sed -e 's/e-/\*10\^-/g'`
@@ -59,7 +58,6 @@ echo $dat $tim $b1
    pb3=`/bin/echo "scale=30;"$b3"/10." | /usr/bin/bc`
    pb5=`/bin/echo "scale=30;"$b5"/10." | /usr/bin/bc`
    pb10=`/bin/echo "scale=30;"$b10"/10." | /usr/bin/bc`
-echo $b1 $pb1
 
 #   /bin/echo $1 $npts $gapl $gapr > continium.tmp 
 
@@ -149,7 +147,7 @@ echo $b1 $pb1
    echo $lines $rms
 # writing output
    if [ $rms != "0.0000e+00" ]
-   then echo $dat $tim $lines " | " $rms " | " $a "+ " $b " x lambda + " $c " x lambda^2" >> $outname
+   then echo $dat $tim $sqm $lines " | " $rms " | " $a "+ " $b " x lambda + " $c " x lambda^2" >> $outname
    fi
 # fin du while
 
