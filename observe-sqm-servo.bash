@@ -29,7 +29,7 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 # wavelengths 0:= vide ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= 405 ,12:= vide
 # possibilite d'ajouter un filtre a 480 ulterieurement (creu DEL)
 filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
-calib=( 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 )
+calib=( 1.0 2044.0 1871.0 2988.0 4198.0 1137.0 1367.0 1075.0 971.0 844.0 6250.0 2390.0 1.0 )
 grep filter_channel $homed/localconfig > toto
 read bidon channel bidon < toto
 read gain offset  bidon < $homed/filtersconfig
