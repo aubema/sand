@@ -114,11 +114,11 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
  #     echo "end of reading"      
       read sqm < sqmdata.tmp
+      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
+      read toto sb toto < toto.tmp
       if [ $n -eq 0 ]
       then let sqmreading=sqm
       fi
-      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-      read toto sb toto < toto.tmp
  #     echo $sb
       sbcal[$n]=`/bin/echo "e((-1*"$sb"/2.5000000)*l(10))*"${calib[$n]} |/usr/bin/bc -l`
       sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
