@@ -117,7 +117,7 @@ ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read toto sb toto < toto.tmp
       if [ $n -eq 0 ]
-      then let sqmreading=sqm
+      then let sqmreading=sb
       fi
  #     echo $sb
       sbcal[$n]=`/bin/echo "e((-1*"$sb"/2.5000000)*l(10))*"${calib[$n]} |/usr/bin/bc -l`
