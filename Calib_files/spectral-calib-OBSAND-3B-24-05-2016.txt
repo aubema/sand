@@ -1,0 +1,2 @@
+gain= 0.54081 oorigin= 383.31319 quad= 0.0
+lineup= 188 linedown= 259
