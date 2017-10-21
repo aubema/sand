@@ -10,5 +10,7 @@ j=`/bin/date -u +%d`
 m=`/bin/date -u +%M`
 h=`/bin/date -u +%H`
 s=`/bin/date -u +%S`
+/bin/mkdir /var/www/html/DATA-SAND/SQM-Saint-Camille/$y
+/bin/mkdir /var/www/html/DATA-SAND/SQM-Saint-Camille/$y/$mo
 /bin/mkdir /var/www/html/DATA-SAND/SQM-Saint-Camille/$y/$mo/$j
 /bin/echo $y $mo $j $h $m $s $sb $intime $temp >> data-$y-$mo-$j.txt
