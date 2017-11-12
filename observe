@@ -658,15 +658,6 @@ if [ $ival = "sp" ] || [ $ival = "ra" ] ; then
            /bin/rm -f $homed/public_html/cgi-bin/bidon.fits
       fi
 fi
-#
-#     define image name
-#
-      noname=`/bin/date +%Y-%m-%d_%H:%M:%S`
-      posname="_el"$eled":"$elem":"$eles"_az"$azid":"$azim":"$azis
-      name=$imtyp"_T_"$stmp"_t_"$inttime"_"$noname$posname".fits"
-      if [ -f $homed/public_html/cgi-bin/$name ]
-      then /bin/rm -f $homed/public_html/cgi-bin/$name
-      fi
 #     entry to log file
       begin=`/bin/date +%T" "%Y-%m-%d`
       /bin/echo "Beginning of acquisition (image " $nimg"/"$nimgtot") @ " $begin
@@ -693,6 +684,15 @@ fi
             /bin/sleep 60
          done
       done
+#
+#     define image name
+#
+      noname=`/bin/date +%Y-%m-%d_%H:%M:%S`
+      posname="_el"$eled":"$elem":"$eles"_az"$azid":"$azim":"$azis
+      name=$imtyp"_T_"$stmp"_t_"$inttime"_"$noname$posname".fits"
+      if [ -f $homed/public_html/cgi-bin/$name ]
+      then /bin/rm -f $homed/public_html/cgi-bin/$name
+      fi
       /bin/echo "    Azimuth: " $azid " deg " $azim " min" $azis " sec" >> $homed/public_html/data/$logname
       /bin/echo "    Elevation: " $eled " deg " $elem " min" $eles " sec" >> $homed/public_html/data/$logname
       /bin/echo "    Integration time: " $inttime "sec">> $homed/public_html/data/$logname
