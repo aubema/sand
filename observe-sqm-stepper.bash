@@ -88,7 +88,7 @@ echo "Clear filter position +- 32 = " $possqm
 # 72 degrees between filter i.e. 4096/5 = 819
 
 increment=819
-let ang=pos-possqm-1*increment)
+let ang=pos-possqm-1*increment
 if [ ang -ge 4096 ] let ang=ang-4096
 if [ ang -le -4086 ] let ang=ang+4096
 echo "Moving wheel to" $ang
@@ -123,7 +123,7 @@ do n=0
    echo "Observation number: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
-      let ang=pos-possqm-n*increment)
+      let ang=pos-possqm-n*increment
       if [ ang -ge 4096 ] let ang=ang-4096
       if [ ang -le -4086 ] let ang=ang+4096
       # moving filter wheel
