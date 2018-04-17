@@ -1,6 +1,6 @@
 #!/bin/bash 
 #   
-#    Copyright (C) 2017  Martin Aube Jeremie Gince
+#    Copyright (C) 2018  Martin Aube Mia Caron
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,27 +20,52 @@
 # 
 
 # home directory
-homed=$HOME
+homed=/home/sand
 
 nobs=1
 waittime=10             # at a mag of about 24 the integration time is around 60s
 #
-# set angles list
-# wavelengths 0:= vide ,1:= 420 2:= 435.8 ,3:= 460 ,4:= 500 ,5:= 530 ,6:= 546.1 ,7:= 560 ,8:= 568.2 ,9:= 630 ,10:= 660 ,11:= 405 ,12:= vide
-# possibilite d'ajouter un filtre a 480 ulterieurement (creu DEL)
-filters=( 0 1 2 3 4 5 6 7 8 9 10 11 12)
-calib=( 1.0 2044.0 1871.0 2989.0 4199.0 1137.0 1367.0 1075.0 971.0 844.0 6250.0 2390.0 1.0 )
-grep filter_channel $homed/localconfig > toto
-read bidon channel bidon < toto
-read gain offset  bidon < $homed/filtersconfig
-grep sqmIP $homed/localconfig > toto
+# set band list
+# wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
+#
+filters=( 0 1 2 3 4 )
+calib=( 1.0 1.0 1.0 1.0 1.0 )
+grep filter_gain $homed/localconfig > toto
+read bidon gain bidon < toto
+grep filter_offset $homed/localconfig > toto
+read bidon offset bidon < toto
+grep sqmIP $homed/localconfig > toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < toto
+# find the clear filter
+# one complete rotation is 4096 donc 1 step = 0.087890625 deg
+memoi=0
+n=0
+while [ $n -le 128 ] 
+# 128 steps of 32 count =  4096
+do sudo MoveStepFilterWheel.py 100 1
+      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
+      read sqm < sqmdata.tmp
+      echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > toto.tmp
+      read bidon sqmm sqmd bidon < toto.tmp
+      echo "first digit" ${sqmm:0:1}
+      # remove leading zero to the sky brightness
+      if [ ${sqmm:0:1} == 0 ]
+      then sqmm=`echo $sqmm | sed 's/0//g'`
+           echo "sqmm tronque " $sqmm
+      fi
+      let meas=sqmm*100+sqmd
+      read bidon meas bidon < toto.tmp
+      if [ $meas -gt $memoi ]
+      then let memoi=meas
+           let possqm=n*32 
+# en supposant 128 steps (4096/128=32)
+           echo $possqm
+      fi
+done
+echo $possqm
 
-if [ ! -f $homed/filtersconfig ]
-   then echo "Error: File $homed/filtersconfig not found"
-        exit 0
-fi
-echo "Start observe-sqm-servo.bash"
+exit 0
+
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
 # 21.97 = 6.9s
@@ -50,86 +75,76 @@ echo "Start observe-sqm-servo.bash"
 # 23.76 = 30.5s
 # 24.00 = 36.4s
 # 24.21 = 42.3s
-# 24.41 = 48.2s
+# 24.41 = 48.2s 
 # 24.60 = 54.1s
 # 24.76 = 60s
 #
-# it is suggested to use filter 1 (420nm) to estimate the waittime
-# waittime must be at least twice that time (we suggest 3x)
+# it is suggested to use filter 1 (Red) to estimate the waittime
+# waittime must be at least twice that time
+# moving the filter wheel to the Red filter
+
+
+
 ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
 
-# moving filter wheel to filter 1
-# echo "deplacement de la roue" $channel $ang
-let park=offset
-/usr/local/bin/MoveFilterWheel.py $ang $channel $park
-echo "Waiting " $waittime " s to estimate acquisition time"
+
+echo "Moving wheel to" $ang
+#
+/usr/local/bin/MoveStepFilterWheel.py $ang
+echo "Waiting " $waittime " s to estimate final acquisition time"
 /bin/sleep $waittime
 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
-read toto toto toto toto tim toto < toto.tmp
+read bidon bidon bidon bidon tim bidon < toto.tmp
 echo "Decimal readout time: " $tim
 echo $tim | sed 's/\./ /g'  > toto.tmp
 read tim timd toto < toto.tmp
 echo $tim | sed 's/000//g'  > toto.tmp
 read tim toto < toto.tmp
-# echo $tim $timd
 if [ $timd -ge 500 ]
 then let tim=tim+1
 fi
-let waittime=tim
-if [ $waittime == 0 ]
-   then waittime=1
- #  echo "toto" $waittime
-else
-   let waittime=waittime*3
-fi
-#angle=( $( cat $homed/filters_pos.txt ) )
-# echo "Acquistion time:" $waittime
+# EST CE VRAIMENT NECESSAIRE DE MULTIPLIER PAR DEUX?
+let waittime=2*tim
+echo "Required acquistion time:" $waittime
+#
+# Main loop
+#
 i=0
 while [ $i -lt $nobs ]
 do n=0
-#   echo "Start"
+   echo "Start"
    let i=i+1
- #  echo "observation numero: " $i
+   echo "Observation number: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
-      if [ $filter -le 6 ]
-      then let park=gain*12+offset
-      else
-           let park=offset
-      fi
- #     echo "Waiting time:" $waittime
-
-ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
-#      ang=${angle[$n]}
-
-
-# moving filter wheel
- #     echo "deplacement de la roue" $channel $ang
-      /usr/local/bin/MoveFilterWheel.py $ang $channel $park      
-#      echo "reading sqm, "  "Filtre: "  $(($n+1))
+      ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
+      # moving filter wheel
+      echo "Moving the filter wheel to filter " $n
+      /usr/local/bin/MoveStepFilterWheel.py $ang     
+      echo "Reading sqm, Filter: " $n
+      echo "Waiting time:" $waittime
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
-
       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
- #     echo "end of reading"      
+      echo "End of reading"      
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-      read toto sb toto < toto.tmp
+      read bidon sb bidon < toto.tmp
       if [ $n -eq 0 ]
+      # keep the sqm clear value in mag per square arc second
       then sqmreading=$sb
       fi
- #     echo $sb
+      echo "Sky brightness = " $sb
+      # convert mag par sq arc second to flux
       sbcal[$n]=`/bin/echo "e((-1*"$sb"/2.5000000)*l(10))*"${calib[$n]} |/usr/bin/bc -l`
       sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
- #     echo ${sbcals[$n]}
+      echo "Flux in band " $n " = "${sbcals[$n]}
       let n=n+1
    done
-nomfich=`date -u +"%m-%d-%y"`
-
-time=`date +%Y-%m-%d" "%H:%M:%S`
-echo $time $sqmreading ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]} ${sbcals[5]} ${sbcals[6]} ${sbcals[7]} ${sbcals[8]} ${sbcals[9]} ${sbcals[10]} ${sbcals[11]}>> $homed/public_html/cgi-bin/photom.txt
-/bin/sleep $waittime
-   
+   nomfich=`date -u +"%Y-%m-%d"`
+   nomfich=$nomfich".txt"
+   time=`date +%Y-%m-%d" "%H:%M:%S`
+   echo $time $sqmreading ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> $homed/$nomfich
 done
-echo "Finish observe-sqm-servo.bash"
+echo "Finish observe-sqm-stepper.bash"
