@@ -37,7 +37,8 @@ read bidon offset bidon < toto
 grep sqmIP $homed/localconfig > toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < toto
 # find the clear filter
-# one complete rotation is 4096 donc 1 step = 0.087890625 deg
+# one complete rotation in half step mode (mode 1) is 4096 i.e. 1 step = 0.087890625 deg
+# if you use the full step mode (mode 0) then 1028 is the number of steps i.e. 1 step = 0.17578125
 pos=0
 memoi=0
 n=0
@@ -87,7 +88,7 @@ echo "Clear filter position +- 32 = " $possqm
 # 72 degrees between filter i.e. 4096/5 = 819
 
 increment=819
-let ang=pos-(possqm+1*increment)
+let ang=pos-possqm-1*increment)
 if [ ang -ge 4096 ] let ang=ang-4096
 if [ ang -le -4086 ] let ang=ang+4096
 echo "Moving wheel to" $ang
@@ -122,7 +123,7 @@ do n=0
    echo "Observation number: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
-      let ang=pos-(possqm+n*increment)
+      let ang=pos-possqm-n*increment)
       if [ ang -ge 4096 ] let ang=ang-4096
       if [ ang -le -4086 ] let ang=ang+4096
       # moving filter wheel
