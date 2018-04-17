@@ -87,7 +87,7 @@ def step_4 (p):
     
 
 def steps_8(value):
-    print value
+#    print value
     global pas
     if(value<0):
         for i in range (0,abs(value)):
@@ -106,7 +106,7 @@ def steps_8(value):
             pas-=1
     step_8(0)        
 def steps_4(value):
-    print value
+#    print value
     global pas
     if(value<0):
         for i in range (0,abs(value)):
@@ -139,7 +139,7 @@ if __name__ == "__main__":
      
      step_4(0)
      pas=1       
-     print len(sys.argv)
+#     print len(sys.argv)
      if(len(sys.argv)<2):
        print ("Parameter error")
        print ("Usage: sudo python MoveStepFilterWheel.py val mode")
@@ -148,10 +148,10 @@ if __name__ == "__main__":
      else:
        st=int(sys.argv[1])
        if(len(sys.argv)==3 and sys.argv[2]=="1"):
-          print("8 phase moving")
+#          print("8 phase moving")
           steps_8(st)
        else:
-          print("4 phase moving")
+#         print("4 phase moving")
           steps_4(st)
 
     

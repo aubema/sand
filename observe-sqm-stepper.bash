@@ -38,33 +38,35 @@ grep sqmIP $homed/localconfig > toto # sqmIP est le mot cle cherche dans le loca
 read bidon sqmip bidon < toto
 # find the clear filter
 # one complete rotation is 4096 donc 1 step = 0.087890625 deg
+pos=0
 memoi=0
 n=0
 while [ $n -le 128 ] 
 # 128 steps of 32 count =  4096
-do sudo MoveStepFilterWheel.py 100 1
-      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
-      read sqm < sqmdata.tmp
-      echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > toto.tmp
-      read bidon sqmm sqmd bidon < toto.tmp
-      echo "first digit" ${sqmm:0:1}
-      # remove leading zero to the sky brightness
-      if [ ${sqmm:0:1} == 0 ]
-      then sqmm=`echo $sqmm | sed 's/0//g'`
-           echo "sqmm tronque " $sqmm
-      fi
-      let meas=sqmm*100+sqmd
-      read bidon meas bidon < toto.tmp
-      if [ $meas -gt $memoi ]
-      then let memoi=meas
-           let possqm=n*32 
-# en supposant 128 steps (4096/128=32)
-           echo $possqm
-      fi
+do sudo MoveStepFilterWheel.py 32 1
+   let pos=pos+32
+   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
+   read sqm < sqmdata.tmp
+   echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > toto.tmp
+   read bidon sqmm sqmd bidon < toto.tmp
+   # remove leading zero to the sky brightness
+   if [ ${sqmm:0:1} == 0 ]
+   then sqmm=`echo $sqmm | sed 's/0//g'`
+   fi
+   if [ ${sqmd:0:1} == 0 ]
+   then sqmd=`echo $sqmd | sed 's/0//g'`
+   fi
+   let meas=sqmm*100+sqmd
+   if [ $meas -gt $memoi ]
+   then let memoi=meas
+        let possqm=pos
+        # en supposant 128 steps (4096/128=32)
+        echo "Found darker position = " $possqm
+   fi
+   let n=n+1
 done
-echo $possqm
+echo "Clear filter position +- 32 = " $possqm
 
-exit 0
 
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
@@ -82,15 +84,16 @@ exit 0
 # it is suggested to use filter 1 (Red) to estimate the waittime
 # waittime must be at least twice that time
 # moving the filter wheel to the Red filter
+# 72 degrees between filter i.e. 4096/5 = 819
 
-
-
-ang=`/bin/echo "scale=0;1*"$gain"+"$offset |/usr/bin/bc -l`
-
-
+increment=819
+let ang=pos-(possqm+1*increment)
+if [ ang -ge 4096 ] let ang=ang-4096
+if [ ang -le -4086 ] let ang=ang+4096
 echo "Moving wheel to" $ang
 #
-/usr/local/bin/MoveStepFilterWheel.py $ang
+/usr/local/bin/MoveStepFilterWheel.py $ang 1
+let pos=pos+ang
 echo "Waiting " $waittime " s to estimate final acquisition time"
 /bin/sleep $waittime
 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
@@ -119,10 +122,13 @@ do n=0
    echo "Observation number: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
-      ang=`/bin/echo "scale=0;"$n"*"$gain"+"$offset |/usr/bin/bc -l`
+      let ang=pos-(possqm+n*increment)
+      if [ ang -ge 4096 ] let ang=ang-4096
+      if [ ang -le -4086 ] let ang=ang+4096
       # moving filter wheel
       echo "Moving the filter wheel to filter " $n
-      /usr/local/bin/MoveStepFilterWheel.py $ang     
+      let pos=pos+ang
+      /usr/local/bin/MoveStepFilterWheel.py $ang 1  
       echo "Reading sqm, Filter: " $n
       echo "Waiting time:" $waittime
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
