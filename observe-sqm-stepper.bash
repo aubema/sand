@@ -24,6 +24,8 @@ homed=/home/sand
 
 nobs=1
 waittime=10             # at a mag of about 24 the integration time is around 60s
+movestep=16
+maxstep=2048
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -37,16 +39,14 @@ read bidon offset bidon < toto
 grep sqmIP $homed/localconfig > toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < toto
 # find the clear filter
-# one complete rotation in half step mode (mode 1) is 4096 i.e. 1 step = 0.087890625 deg
-# if you use the full step mode (mode 0) then 1028 is the number of steps i.e. 1 step = 0.17578125
+# one complete rotation in half step mode (mode 1) is maxstep=4096 i.e. 1 step = 0.087890625 deg
+# if you use the full step mode (mode 0) then maxstep=2048 is the number of steps i.e. 1 step = 0.17578125
 pos=0
-memoi=0
+memoi=3000
 n=0
-while [ $n -le 128 ] 
-# 128 steps of 32 count =  4096
-do sudo MoveStepFilterWheel.py 32 1
-   let pos=pos+32
-   /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
+let nstep=maxstep/movestep
+while [ $n -lt $nstep ] 
+do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
    read sqm < sqmdata.tmp
    echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > toto.tmp
    read bidon sqmm sqmd bidon < toto.tmp
@@ -58,15 +58,22 @@ do sudo MoveStepFilterWheel.py 32 1
    then sqmd=`echo $sqmd | sed 's/0//g'`
    fi
    let meas=sqmm*100+sqmd
-   if [ $meas -gt $memoi ]
+   if [ $meas -lt $memoi ]
    then let memoi=meas
         let possqm=pos
-        # en supposant 128 steps (4096/128=32)
-        echo "Found darker position = " $possqm
+        echo "Found clearer position = " $possqm
+   fi
+   sudo MoveStepFilterWheel.py $movestep 0
+   let pos=pos+movestep
+   if [ $pos -ge $maxstep ] 
+   then let pos=pos-maxstep
+   fi
+   if [ $pos -le -$maxstep ] 
+   then let pos=pos+maxstep
    fi
    let n=n+1
 done
-echo "Clear filter position +- 32 = " $possqm
+echo "Clear filter position +- "$movestep " = " $possqm
 
 
 # according to unihedron here are the typical waiting time vs sky brightness
@@ -85,16 +92,21 @@ echo "Clear filter position +- 32 = " $possqm
 # it is suggested to use filter 1 (Red) to estimate the waittime
 # waittime must be at least twice that time
 # moving the filter wheel to the Red filter
-# 72 degrees between filter i.e. 4096/5 = 819
+# 72 degrees between filter i.e. maxstep/5 
 
-increment=819
-let ang=pos-possqm-1*increment
-if [ ang -ge 4096 ] let ang=ang-4096
-if [ ang -le -4086 ] let ang=ang+4096
-echo "Moving wheel to" $ang
+let increment=maxstep/5
+echo "increment=" $increment
+let ang=possqm+1*increment-pos
+echo "Moving wheel of" $ang " steps"
 #
-/usr/local/bin/MoveStepFilterWheel.py $ang 1
+/usr/local/bin/MoveStepFilterWheel.py $ang 0
 let pos=pos+ang
+if [ $pos -ge $maxstep ] 
+then let pos=pos-maxstep
+fi
+if [ $pos -le -$maxstep ]
+then let pos=pos+maxstep
+fi
 echo "Waiting " $waittime " s to estimate final acquisition time"
 /bin/sleep $waittime
 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
@@ -123,13 +135,24 @@ do n=0
    echo "Observation number: " $i
    while [ $n -lt ${#filters[*]} ]
    do filter=${filters[$n]}
-      let ang=pos-possqm-n*increment
-      if [ ang -ge 4096 ] let ang=ang-4096
-      if [ ang -le -4086 ] let ang=ang+4096
+      let ang=possqm+n*increment-pos
+      if [ $ang -ge $maxstep ] 
+      then let ang=ang-maxstep
+      fi
+      if [ $ang -le -$maxstep ]
+      then let ang=ang+maxstep
+      fi
       # moving filter wheel
       echo "Moving the filter wheel to filter " $n
       let pos=pos+ang
-      /usr/local/bin/MoveStepFilterWheel.py $ang 1  
+      if [ $pos -ge $maxstep ] 
+      then let pos=pos-maxstep
+      fi
+      if [ $pos -le -$maxstep ]
+      then let pos=pos+maxstep
+      fi
+      echo "Moving to position " $pos
+      /usr/local/bin/MoveStepFilterWheel.py $ang 0  
       echo "Reading sqm, Filter: " $n
       echo "Waiting time:" $waittime
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
@@ -154,4 +177,7 @@ do n=0
    time=`date +%Y-%m-%d" "%H:%M:%S`
    echo $time $sqmreading ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> $homed/$nomfich
 done
+echo "Parking filter wheel..."
+let ang=-pos
+/usr/local/bin/MoveStepFilterWheel.py $ang 0  
 echo "Finish observe-sqm-stepper.bash"
