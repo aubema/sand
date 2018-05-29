@@ -22,7 +22,7 @@
 # home directory
 homed=/home/sand
 
-nobs=1
+nobs=1  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
 movestep=16
 maxstep=2048
@@ -93,7 +93,6 @@ echo "Clear filter position +- "$movestep " = " $possqm
 # waittime must be at least twice that time
 # moving the filter wheel to the Red filter
 # 72 degrees between filter i.e. maxstep/5 
-
 let increment=maxstep/5
 echo "increment=" $increment
 let ang=possqm+1*increment-pos
@@ -113,7 +112,8 @@ echo "Waiting " $waittime " s to estimate final acquisition time"
 read sqm < sqmdata.tmp
 echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
 read bidon bidon bidon bidon tim bidon < toto.tmp
-echo "Decimal readout time: " $tim
+echo "Decimal readout time: " $tim  
+# default wait time set to the acquisition time with the red filter
 echo $tim | sed 's/\./ /g'  > toto.tmp
 read tim timd toto < toto.tmp
 echo $tim | sed 's/000//g'  > toto.tmp
@@ -121,24 +121,27 @@ read tim toto < toto.tmp
 if [ $timd -ge 500 ]
 then let tim=tim+1
 fi
-# EST CE VRAIMENT NECESSAIRE DE MULTIPLIER PAR DEUX?
-let waittime=2*tim
+# add 2 seconds to the waiting time to be sure that no overlap will occur
+let waittime=tim+2
 echo "Required acquistion time:" $waittime
 #
 # Main loop
 #
 i=0
 while [ $i -lt $nobs ]
-do n=0
-   echo "Start"
-   let i=i+1
-   echo "Observation number: " $i
-   while [ $n -lt ${#filters[*]} ]
-   do filter=${filters[$n]}
-      let ang=possqm+n*increment-pos
-      if [ $ang -ge $maxstep ] 
-      then let ang=ang-maxstep
+do if [  $nobs == 9999 ] 
+      then let nobs=i+1  # on s assure que nobs est toujours = ou > a i
       fi
+      n=0
+      echo "Start"
+      let i=i+1
+      echo "Observation number: " $i
+      while [ $n -lt ${#filters[*]} ]
+      do filter=${filters[$n]}
+           let ang=possqm+n*increment-pos
+           if [ $ang -ge $maxstep ] 
+           then let ang=ang-maxstep
+           fi
       if [ $ang -le -$maxstep ]
       then let ang=ang+maxstep
       fi
@@ -172,6 +175,11 @@ do n=0
       echo "Flux in band " $n " = "${sbcals[$n]}
       let n=n+1
    done
+   echo $sb | sed 's/\./ /g'  > toto.tmp  # on decoupe les entiers et decimales de la mesure sqm
+   read seuil toto toto < toto.tmp
+   if [ $seuil -lt 12 ]
+       then /bin/sleep 100    # waiting at least 100 sec when it is daytime
+   fi 
    nomfich=`date -u +"%Y-%m-%d"`
    nomfich=$nomfich".txt"
    time=`date +%Y-%m-%d" "%H:%M:%S`
