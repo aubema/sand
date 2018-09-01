@@ -133,7 +133,7 @@ do
     ;;
   esac
 done
-# min delay on startup = 30 min in the case of sunset to allow the time for cooling and scan filters during twilight
+# min delay on startup = 45 min in the case of sunset to allow the time for cooling and scan filters during twilight
 if [ $aval == "sun" ]
 then if [ $dval -lt 45 ]
      then let dval=40
@@ -287,6 +287,7 @@ do let nl=nl+1
 #  meaning that sunset is after midnight while we are before midnight
 #  adding 24h to sunset as a first approximation
    then let sunset=sunset+86400
+        echo "case toto" $sunset $actsec
    fi
    let dsec=sunset-actsec
 
