@@ -64,8 +64,15 @@ then /bin/echo $now ": Bad comm with CCD, rebooting CCD..."
           /bin/cp -f /home/sand/checkmysystem.log /home/sand/$datestamp-checkmysytem.log    # rename previous nohup.out
           /bin/echo "" > checkmysystem.log
           /bin/echo "Restarting observe..."
-          /bin/su - sand -c "$scommand"                                                     # start observe as sand
+          eval "$scommand"                                                     # start observe as sand
      fi
+fi
+if [ `/bin/ps -A | /bin/grep -c observe` -eq 0 ]  # observe is not running then start it
+then /bin/echo "Starting observe script..."
+     /bin/cp -f /home/sand/checkmysystem.log /home/sand/$datestamp-checkmysytem.log    # rename previous nohup.out
+     /bin/echo "" > checkmysystem.log
+     /bin/echo "Restarting observe..."
+     eval "$scommand"                                                     # start observe as sand
 fi
 
 
